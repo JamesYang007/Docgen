@@ -1,0 +1,6 @@
+{
+    "name": "docgen",
+    "dependencies": {
+        "node-json2html": "1.3.0"
+    }
+}
