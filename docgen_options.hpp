@@ -1,23 +1,37 @@
+#pragma once
+
 #include <getopt.h>
 #include <cctype>
+#include <cstdio>
 #include <iostream>
 #include <fstream>
+#include "docgen_status.hpp"
 
 static char **files_src_paths;
 static std::istream *parsed_src = NULL;
 static std::ostream *parsed_dst = NULL;
 static const char *docs_dst_path = ".";
 
-static inline void parse_args_global(int argc, char **argv)
+static inline void set_options_global(int argc, char **argv)
 {
 	int c;
 	while ((c = getopt(argc, argv, "i:o:d:")) != -1) {
 		switch (c) {
 			case 'i':
 				parsed_src = strcmp(optarg, "-") == 0 ? &std::cin : new std::ifstream(optarg);
+				if (parsed_src->fail()) {
+					perror("std::ifstream open failed");
+					status = DG_SYS_ERR;
+					return;
+				}
 				break;
 			case 'o':
 				parsed_dst = strcmp(optarg, "-") == 0 ? &std::cout : new std::ofstream(optarg);
+				if (parsed_dst->fail()) {
+					perror("std::ofstream open failed");
+					status = DG_SYS_ERR;
+					return;
+				}
 				break;
 			case 'd':
 			{
@@ -38,16 +52,18 @@ static inline void parse_args_global(int argc, char **argv)
 				else {
 					fprintf (stderr, "Unknown option character `\\x%x'.\n", optopt);
 				}
-				exit(1);
+				status = DG_FLAGS_NO;
+				return;
 			default:
 				fprintf(stderr, "Encountered an unknown error parsing options.\n");
-				exit(1);
+				status = DG_FLAGS_NO;
+				return;
 		}
 	}
 	files_src_paths = argv + optind;
 }
 
-static inline void cleanup_global()
+static inline void cleanup_options_global()
 {
 	if (parsed_src && parsed_src != &std::cin) {
 		delete parsed_src;
