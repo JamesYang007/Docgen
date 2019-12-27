@@ -15,13 +15,13 @@ static const char *docs_dst_path = ".";
 static inline void set_options_global(int argc, char **argv)
 {
 	int c;
-	while ((c = getopt(argc, argv, "i:o:d:")) != -1) {
+	while ((c = getopt(argc, argv, ":i:o:d:")) != -1) {
 		switch (c) {
 			case 'i':
 				parsed_src = strcmp(optarg, "-") == 0 ? &std::cin : new std::ifstream(optarg);
 				if (parsed_src->fail()) {
 					perror("std::ifstream open failed");
-					status = DG_SYS_ERR;
+					status = DG_FILE_NO;
 					return;
 				}
 				break;
@@ -29,7 +29,7 @@ static inline void set_options_global(int argc, char **argv)
 				parsed_dst = strcmp(optarg, "-") == 0 ? &std::cout : new std::ofstream(optarg);
 				if (parsed_dst->fail()) {
 					perror("std::ofstream open failed");
-					status = DG_SYS_ERR;
+					status = DG_FILE_NO;
 					return;
 				}
 				break;
@@ -42,11 +42,12 @@ static inline void set_options_global(int argc, char **argv)
 				docs_dst_path = optarg;
 				break;
 			}
+			case ':':
+				fprintf(stderr, "Option -%c requires an argument.\n", optopt);
+				status = DG_FLAGS_NO;
+				return;
 			case '?':
-				if (optopt == 'c') {
-					fprintf(stderr, "Option -%c requires an argument.\n", optopt);
-				}
-				else if (isprint(optopt)) {
+				if (isprint(optopt)) {
 					fprintf (stderr, "Unknown option `-%c'.\n", optopt);
 				}
 				else {

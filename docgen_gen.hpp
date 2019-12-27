@@ -8,7 +8,7 @@ static inline void from_parsed_global()
 		*parsed_dst << parsed;
 		if (parsed_dst->fail()) {
 			perror("std::ostream write failed");
-			status = DG_SYS_ERR;
+			status = DG_FILE_ERR;
 		}
 		return;
 	}

@@ -8,7 +8,7 @@ static inline void to_parsed_global()
 		*parsed_src >> parsed;	
 		if (parsed_src->fail()) {
 			perror("std::istream read failed");
-			status = DG_SYS_ERR;
+			status = DG_FILE_ERR;
 		}
 		return;
 	}
