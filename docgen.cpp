@@ -14,7 +14,7 @@ int main(int argc, char **argv)
 	status_check();
 
 	cleanup:
+		report_status();
 		cleanup_options_global();
-		status_report();
 		return 0;	
 }
