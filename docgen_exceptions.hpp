@@ -10,7 +10,7 @@ namespace docgen
 	class exception : public std::exception
 	{
 		public:
-			explicit exception(const std::string& msg)
+			explicit exception(const std::string& msg) noexcept
 				: msg_(prefix_ + msg)
 			{}
 
@@ -27,7 +27,7 @@ namespace docgen
 	class system_error : public exception
 	{
 		public:
-			explicit system_error(const std::string& msg)
+			explicit system_error(const std::string& msg) noexcept
 				: exception(msg + ": " + strerror(errno))
 			{}
 	};
@@ -35,7 +35,7 @@ namespace docgen
 	class bad_flags : public exception
 	{
 		public:
-			bad_flags()
+			bad_flags() noexcept
 				: exception("bad flags")
 			{}
 	};
