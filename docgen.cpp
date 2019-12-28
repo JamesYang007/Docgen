@@ -4,17 +4,20 @@
 
 int main(int argc, char **argv)
 {
-	set_options_global(argc, argv);
-	status_check();
+	try {
+		set_options_global(argc, argv);
 
-	to_parsed_global();
-	status_check();
+		to_parsed_global();
 
-	from_parsed_global();
-	status_check();
+		from_parsed_global();
+	}
+	catch (const docgen::exception& de) {
+		std::cerr << de.what() << '\n';
+	}
+	catch (const std::exception& e) {
+		std::cerr << "Docgen encountered an error: " << e.what() << '\n';
+	}
 
-	cleanup:
-		report_status();
-		cleanup_options_global();
-		return 0;	
+	cleanup_options_global();
+	return 0;	
 }

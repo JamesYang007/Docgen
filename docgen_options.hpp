@@ -3,9 +3,10 @@
 #include <getopt.h>
 #include <cctype>
 #include <cstdio>
+#include <string>
 #include <iostream>
 #include <fstream>
-#include "docgen_status.hpp"
+#include "docgen_exceptions.hpp"
 
 static char **files_src_paths;
 static std::istream *parsed_src = NULL;
@@ -20,17 +21,13 @@ static inline void set_options_global(int argc, char **argv)
 			case 'i':
 				parsed_src = strcmp(optarg, "-") == 0 ? &std::cin : new std::ifstream(optarg);
 				if (parsed_src->fail()) {
-					perror("std::ifstream open failed");
-					status = DG_FILE_NO;
-					return;
+					throw docgen::system_error("failed to open istream");
 				}
 				break;
 			case 'o':
 				parsed_dst = strcmp(optarg, "-") == 0 ? &std::cout : new std::ofstream(optarg);
 				if (parsed_dst->fail()) {
-					perror("std::ofstream open failed");
-					status = DG_FILE_NO;
-					return;
+					throw docgen::system_error("failed to open ostream");
 				}
 				break;
 			case 'd':
@@ -44,8 +41,8 @@ static inline void set_options_global(int argc, char **argv)
 			}
 			case ':':
 				fprintf(stderr, "Option -%c requires an argument.\n", optopt);
-				status = DG_FLAGS_NO;
-				return;
+				throw docgen::bad_flags();
+				break;
 			case '?':
 				if (isprint(optopt)) {
 					fprintf (stderr, "Unknown option `-%c'.\n", optopt);
@@ -53,12 +50,11 @@ static inline void set_options_global(int argc, char **argv)
 				else {
 					fprintf (stderr, "Unknown option character `\\x%x'.\n", optopt);
 				}
-				status = DG_FLAGS_NO;
-				return;
+				throw docgen::bad_flags();
+				break;
 			default:
 				fprintf(stderr, "Encountered an unknown error parsing options.\n");
-				status = DG_FLAGS_NO;
-				return;
+				throw docgen::bad_flags();
 		}
 	}
 	files_src_paths = argv + optind;

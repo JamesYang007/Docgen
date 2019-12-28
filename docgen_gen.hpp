@@ -7,8 +7,7 @@ static inline void from_parsed_global()
 	if (parsed_dst) {
 		*parsed_dst << parsed;
 		if (parsed_dst->fail()) {
-			perror("std::ostream write failed");
-			status = DG_FILE_ERR;
+			throw docgen::system_error("failed to write to ostream");
 		}
 		return;
 	}
