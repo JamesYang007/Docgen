@@ -32,6 +32,14 @@ namespace docgen
 			{}
 	};
 
+	class control_flow_error : public exception
+	{
+		public:
+			explicit control_flow_error(const std::string& msg) noexcept
+				: exception("control flow error: " + msg)
+			{}
+	};
+
 	class bad_flags : public exception
 	{
 		public:

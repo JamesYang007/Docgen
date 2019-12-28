@@ -90,6 +90,10 @@ static inline void to_parsed(nlohmann::json& parsed)
 		return;
 	}
 
+	if (!files_src_paths) {
+		throw docgen::control_flow_error("global var 'files_src_paths' not set for routine 'to_parsed'");
+	}
+
 	// TODO parse files from global NULL-terminated list files_src_paths and write information to json parsed
 }
 
@@ -111,10 +115,12 @@ static inline void from_parsed(const nlohmann::json& parsed)
 
 int main(int argc, char **argv)
 {
-	try {
-		static nlohmann::json parsed;
+	static int status = 0;
 
+	try {
 		set_options(argc, argv);
+
+		static nlohmann::json parsed;
 
 		to_parsed(parsed);
 
@@ -122,11 +128,13 @@ int main(int argc, char **argv)
 	}
 	catch (const docgen::exception& de) {
 		std::cerr << de.what() << '\n';
+		status = 1;
 	}
 	catch (const std::exception& e) {
 		std::cerr << "Docgen encountered an error: " << e.what() << '\n';
+		status = 1;
 	}
 
 	cleanup_options();
-	return 0;	
+	return status;	
 }
