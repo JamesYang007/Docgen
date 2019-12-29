@@ -20,7 +20,7 @@ namespace docgen
 			}
 
 		private:
-			static constexpr const char * prefix_ = "Docgen encountered a problem: ";
+			static constexpr const char *prefix_ = "Docgen encountered a problem: ";
 			std::string msg_;
 	};
 
