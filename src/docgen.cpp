@@ -7,7 +7,7 @@
 #include <fstream>
 #include <memory>
 #include <nlohmann/json.hpp>
-#include "exceptions.hpp"
+#include "exceptions/exceptions.hpp"
 
 /* Options */
 static const char * const *files_src_paths;
