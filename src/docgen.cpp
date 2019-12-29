@@ -11,8 +11,8 @@
 
 /* Options */
 static const char * const *files_src_paths;
-static std::shared_ptr<std::istream> parsed_src(nullptr, [](std::istream *p){});
-static std::shared_ptr<std::ostream> parsed_dst(nullptr, [](std::ostream *p){});
+static std::shared_ptr<std::istream> parsed_src(nullptr);
+static std::shared_ptr<std::ostream> parsed_dst(nullptr);
 static const char *docs_dst_path = ".";
 
 /*
