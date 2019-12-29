@@ -5,13 +5,14 @@
 #include <string>
 #include <iostream>
 #include <fstream>
+#include <memory>
 #include <nlohmann/json.hpp>
 #include "exceptions.hpp"
 
 /* Options */
-static char **files_src_paths;
-static std::istream *parsed_src = NULL;
-static std::ostream *parsed_dst = NULL;
+static const char * const *files_src_paths;
+static std::shared_ptr<std::istream> parsed_src(nullptr, [](std::istream *p){});
+static std::shared_ptr<std::ostream> parsed_dst(nullptr, [](std::ostream *p){});
 static const char *docs_dst_path = ".";
 
 /*
@@ -23,15 +24,25 @@ static inline void set_options(int argc, char **argv)
 	while ((c = getopt(argc, argv, ":i:o:d:")) != -1) {
 		switch (c) {
 			case 'i':
-				parsed_src = strcmp(optarg, "-") == 0 ? &std::cin : new std::ifstream(optarg);
-				if (parsed_src->fail()) {
-					throw docgen::system_error("failed to open istream");
+				if (strcmp(optarg, "-") == 0) {
+					parsed_src = std::shared_ptr<std::istream>(&std::cin, [](std::istream *p){});
+				}
+				else {
+					parsed_src = std::make_shared<std::ifstream>(optarg);
+					if (parsed_src->fail()) {
+						throw docgen::system_error("failed to open istream");
+					}
 				}
 				break;
 			case 'o':
-				parsed_dst = strcmp(optarg, "-") == 0 ? &std::cout : new std::ofstream(optarg);
-				if (parsed_dst->fail()) {
-					throw docgen::system_error("failed to open ostream");
+				if (strcmp(optarg, "-") == 0) {
+					parsed_dst = std::shared_ptr<std::ostream>(&std::cout, [](std::ostream *p){});
+				}
+				else {
+					parsed_dst = std::make_shared<std::ofstream>(optarg);
+					if (parsed_dst->fail()) {
+						throw docgen::system_error("failed to open ostream");
+					}
 				}
 				break;
 			case 'd':
@@ -64,23 +75,13 @@ static inline void set_options(int argc, char **argv)
 	files_src_paths = argv + optind;
 }
 
-/*
- * Frees up any memory allocated for global option variables
- */
-static inline void cleanup_options()
-{
-	if (parsed_src && parsed_src != &std::cin) {
-		delete parsed_src;
-	}
-	if (parsed_dst && parsed_dst != &std::cout) {
-		delete parsed_dst;
-	}
-}
+/* Parsing data JSON */
+static nlohmann::json parsed;
 
 /*
- * Populates the passed JSON with parsing data as per global options
+ * Populates global JSON with parsing data as per global options
  */
-static inline void to_parsed(nlohmann::json& parsed)
+static inline void to_parsed()
 {
 	if (parsed_src) {
 		*parsed_src >> parsed;	
@@ -98,9 +99,9 @@ static inline void to_parsed(nlohmann::json& parsed)
 }
 
 /*
- * Handles parsing data from the passed JSON as per global options
+ * Handles parsing data from global JSON as per global options
  */
-static inline void from_parsed(const nlohmann::json& parsed)
+static inline void from_parsed()
 {
 	if (parsed_dst) {
 		*parsed_dst << parsed;
@@ -120,11 +121,9 @@ int main(int argc, char **argv)
 	try {
 		set_options(argc, argv);
 
-		static nlohmann::json parsed;
+		to_parsed();
 
-		to_parsed(parsed);
-
-		from_parsed(parsed);
+		from_parsed();
 	}
 	catch (const docgen::exception& de) {
 		std::cerr << de.what() << '\n';
@@ -135,6 +134,5 @@ int main(int argc, char **argv)
 		status = 1;
 	}
 
-	cleanup_options();
 	return status;	
 }
