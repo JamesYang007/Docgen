@@ -24,7 +24,6 @@ private:
     // Tags indicating possible states of a ChunkParser object.
     enum State {
         STATE_READ = 0,
-        STATE_SLASH,
         STATE_SINGLE_LINE,
         STATE_BLOCK,
         NUM_STATES
@@ -35,10 +34,6 @@ private:
     static State read_routine(const char *&begin,
                               const char *end,
                               nlohmann::json& json);
-
-    static State slash_routine(const char *&begin,
-                               const char *end,
-                               nlohmann::json& json);
 
     static State single_line_routine(const char *&begin,
                                      const char *end,
@@ -59,7 +54,6 @@ private:
     // NOTE: the order of enum State values must match exactly with the order of routines below.
     static constexpr parser_t parser_ = {
         read_routine,
-        slash_routine,
         single_line_routine,
         block_routine
     };

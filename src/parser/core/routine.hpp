@@ -12,11 +12,6 @@ inline void read_routine(const char *&begin, const char *end, nlohmann::json& js
     // TODO: implement parsing 
 }
 
-inline void slash_routine(const char *&begin, const char *end, nlohmann::json& json)
-{
-    // TODO: implement parsing 
-}
-
 inline void single_line_routine(const char *&begin, const char *end, nlohmann::json& json)
 {
     // TODO: implement parsing 
