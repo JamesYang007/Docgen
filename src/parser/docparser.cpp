@@ -10,22 +10,22 @@ void DocParser::parse(const char *begin,
     {
         case State::read:     
             {
-                parse<State::read>(begin, end, json);            
+                details::parse<State::read>(begin, end, json);            
                 break;
             }
         case State::slash:     
             {
-                parse<State::slash>(begin, end, json);            
+                details::parse<State::slash>(begin, end, json);            
                 break;
             }
         case State::single_line:     
             {
-                parse<State::single_line>(begin, end, json);            
+                details::parse<State::single_line>(begin, end, json);            
                 break;
             }
         case State::block:     
             {
-                parse<State::block>(begin, end, json);            
+                details::parse<State::block>(begin, end, json);            
                 break;
             }
     }
