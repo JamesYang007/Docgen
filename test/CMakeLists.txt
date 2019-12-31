@@ -27,4 +27,4 @@ add_executable(parse_unittest
                ${CMAKE_CURRENT_SOURCE_DIR}/parse/core/symbol_unittest.cpp
                )
 
-create_test("parse_unittest" parse_unittest)
+create_test("parse_unittests" parse_unittest)
