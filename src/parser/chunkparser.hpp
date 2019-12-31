@@ -16,10 +16,12 @@ public:
     // Main function that user will call to parse a chunk of text.
     // This function will update the json object with information extracted from chunk.
     void parse(const char *begin, 
-               const char *end,
-               nlohmann::json& json);
+               const char *end);
 
 private:
+
+    // stores parsed information
+    nlohmann::json json;
 
     // Tags indicating possible states of a ChunkParser object.
     enum State {
@@ -32,16 +34,13 @@ private:
     // These private routine functions use the ones in namespace details
     // but additionally return the changed state.
     static State read_routine(const char *&begin,
-                              const char *end,
-                              nlohmann::json& json);
+                              const char *end);
 
     static State single_line_routine(const char *&begin,
-                                     const char *end,
-                                     nlohmann::json& json);
+                                     const char *end);
 
     static State block_routine(const char *&begin,
-                               const char *end,
-                               nlohmann::json& json);
+                               const char *end);
 
     // All routine functions must have the same prototype.
     // We may (arbitrarily) use function pointer type 
