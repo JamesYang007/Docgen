@@ -6,63 +6,101 @@ namespace docgen {
 namespace parse {
 namespace core {
 
-// Tags indicating possible states of a ChunkParser object.
+// Tags indicating possible states 
 enum class State {
-    READ = 0,
+    DEFAULT = 0,
     SINGLE_LINE,
-    BLOCK,
-    NUM_STATES
+    BLOCK
 }; 
 
-// These routines will parse the chunk of text starting at begin
-// until it reaches end and update the json object.
+// Tags indicating possible routines 
+enum class Routine {
+    READ = 0,
+    SLASH,
+    IGNORE_WS,
+    IGNORE_WS_END_BLOCK,
+    PROCESS,
+    PROCESS_END_BLOCK,
+    NUM_ROUTINES
+};
+
+// Forward-declaration of a routine.
+// routine will parse the chunk of text starting at begin
+// until it reaches end, given current state, and update the json object.
+// If a state changes, routine will modify state.
 // When a state changes or the chunk has been fully read, the routine will finish.
-inline void read_routine(const char *&begin, const char *end, nlohmann::json&)
-{
-    // TODO: implement parsing 
-}
+// It will always return the next routine to execute.
+// routine will perform differently depending on routine_tag.
+template <Routine routine_tag>
+inline Routine routine(State& state, const char *&begin, 
+                       const char *end, nlohmann::json& parsed);
 
-inline void single_line_routine(const char *&begin, const char *end, nlohmann::json& json)
-{
-    // TODO: implement parsing 
-}
+template <>
+inline Routine routine<Routine::READ>(State& state, const char *&begin, 
+                                      const char *end, nlohmann::json&)
+{}
 
-inline void block_routine(const char *&begin, const char *end, nlohmann::json& json)
-{
-    // TODO: implement parsing 
-}
+template <>
+inline Routine routine<Routine::SLASH>(State& state, const char *&begin, 
+                                       const char *end, nlohmann::json& parsed)
+{}
+
+template <>
+inline Routine routine<Routine::IGNORE_WS>(State& state, const char *&begin, 
+                                           const char *end, nlohmann::json& parsed)
+{}
+
+template <>
+inline Routine routine<Routine::IGNORE_WS_END_BLOCK>(State& state, const char *&begin, 
+                                                     const char *end, nlohmann::json& parsed)
+{}
+
+template <>
+inline Routine routine<Routine::PROCESS>(State& state, const char *&begin, 
+                                         const char *end, nlohmann::json& parsed)
+{}
+
+template <>
+inline Routine routine<Routine::PROCESS_END_BLOCK>(State& state, const char *&begin, 
+                                                   const char *end, nlohmann::json& parsed)
+{}
 
 } // namespace core
 
 // Parse a file given a filepath.
 void parse_file(const char *filepath)
 {
+    // Propagate types
+    using Routine = core::Routine;
+    using State = core::State;
 
     // All routine functions must have the same prototype.
     // We may (arbitrarily) use function pointer type 
     // of read_routine to set the following alias. 
-    using parser_routine_t = decltype(&core::read_routine);
-    static constexpr size_t array_size = static_cast<size_t>(core::State::NUM_STATES);
+    using parser_routine_t = decltype(&core::routine<Routine::READ>);
+    static constexpr size_t array_size = static_cast<size_t>(Routine::NUM_ROUTINES);
     using parser_t = std::array<parser_routine_t, array_size>;
 
     // parser_[i] is the ith routine function associated with ith enum value in State
     // NOTE: the order of enum State values must match exactly with the order of routines below.
     static constexpr parser_t parser = {
-        core::read_routine,
-        core::single_line_routine,
-        core::block_routine
+        core::routine<Routine::READ>,
+        core::routine<Routine::SLASH>,
+        core::routine<Routine::IGNORE_WS>,
+        core::routine<Routine::IGNORE_WS_END_BLOCK>,
+        core::routine<Routine::PROCESS>,
+        core::routine<Routine::PROCESS_END_BLOCK>
     };
-    core::State state = core::State::READ;
+    State state = State::DEFAULT;       // initially in default state
+    Routine routine = Routine::READ;    // initially in read routine
     nlohmann::json parsed;
 
     // open filepath
     // while (reading chunk) {
     // set begin and end accordingly
-    // while (begin != end) {
-    //     // begin will get updated inside the parser function
-    //     // the return value is the next state 
-    //     state = core::parser[state](begin, end, parsed);
-    // }
+    //      while (begin != end) {
+    //          routine = parser[static_cast<size_t>(routine)](state, begin, end, parsed);
+    //      }
     // }
 }
 
