@@ -9,6 +9,8 @@
 #include <nlohmann/json.hpp>
 #include "exceptions/exceptions.hpp"
 
+using namespace docgen;
+
 /* Options */
 static const char * const *files_src_paths;
 static std::shared_ptr<std::istream> parsed_src(nullptr);
@@ -30,7 +32,7 @@ static inline void set_options(int argc, char **argv)
 				else {
 					parsed_src = std::make_shared<std::ifstream>(optarg);
 					if (parsed_src->fail()) {
-						throw docgen::system_error("failed to open istream");
+						throw exceptions::system_error("failed to open istream");
 					}
 				}
 				break;
@@ -41,7 +43,7 @@ static inline void set_options(int argc, char **argv)
 				else {
 					parsed_dst = std::make_shared<std::ofstream>(optarg);
 					if (parsed_dst->fail()) {
-						throw docgen::system_error("failed to open ostream");
+						throw exceptions::system_error("failed to open ostream");
 					}
 				}
 				break;
@@ -56,7 +58,7 @@ static inline void set_options(int argc, char **argv)
 			}
 			case ':':
 				fprintf(stderr, "Option -%c requires an argument.\n", optopt);
-				throw docgen::bad_flags();
+				throw exceptions::bad_flags();
 				break;
 			case '?':
 				if (isprint(optopt)) {
@@ -65,11 +67,11 @@ static inline void set_options(int argc, char **argv)
 				else {
 					fprintf (stderr, "Unknown option character `\\x%x'.\n", optopt);
 				}
-				throw docgen::bad_flags();
+				throw exceptions::bad_flags();
 				break;
 			default:
 				fprintf(stderr, "Encountered an unknown error parsing options.\n");
-				throw docgen::bad_flags();
+				throw exceptions::bad_flags();
 		}
 	}
 	files_src_paths = argv + optind;
@@ -86,13 +88,13 @@ static inline void to_parsed()
 	if (parsed_src) {
 		*parsed_src >> parsed;	
 		if (parsed_src->fail()) {
-			throw docgen::system_error("failed to read from istream");
+			throw exceptions::system_error("failed to read from istream");
 		}
 		return;
 	}
 
 	if (!files_src_paths) {
-		throw docgen::control_flow_error("global var 'files_src_paths' not set for routine 'to_parsed'");
+		throw exceptions::control_flow_error("global var 'files_src_paths' not set for routine 'to_parsed'");
 	}
 
 	// TODO parse files from global NULL-terminated list files_src_paths and write information to json parsed
@@ -106,7 +108,7 @@ static inline void from_parsed()
 	if (parsed_dst) {
 		*parsed_dst << parsed;
 		if (parsed_dst->fail()) {
-			throw docgen::system_error("failed to write to ostream");
+			throw exceptions::system_error("failed to write to ostream");
 		}
 		return;
 	}
@@ -125,7 +127,7 @@ int main(int argc, char **argv)
 
 		from_parsed();
 	}
-	catch (const docgen::exception& de) {
+	catch (const exceptions::exception& de) {
 		std::cerr << de.what() << '\n';
 		status = 1;
 	}
