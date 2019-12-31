@@ -1,5 +1,6 @@
 #pragma once
 #include <nlohmann/json.hpp>
+#include <array>
 
 namespace docgen {
 namespace parse {
