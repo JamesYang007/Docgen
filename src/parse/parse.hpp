@@ -7,6 +7,17 @@
 
 namespace docgen {
 namespace parse {
+namespace details {
+
+struct file_deleter
+{
+    void operator()(FILE* file) const
+    {
+        fclose(file);
+    }
+};
+
+} // namespace details
 
 // Parse a file given a filepath.
 void parse_file(const char* filepath)
@@ -31,9 +42,9 @@ void parse_file(const char* filepath)
     cache_t cache;
     Routine routine = Routine::READ;    // initially in read routine
 
-    std::shared_ptr<FILE> file(fopen(filepath, "r"), 
-                               [](FILE* file) { fclose(file); }
-                               );
+    using file_ptr_t = std::unique_ptr<FILE, details::file_deleter>;
+    file_ptr_t file(fopen(filepath, "r"), details::file_deleter());
+
     char buf[buf_size] = {0};
     size_t nread = 0;
 
