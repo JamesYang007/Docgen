@@ -7,7 +7,7 @@ namespace docgen {
 namespace parse {
 
 // Parse a file given a filepath.
-void parse_file(const char *filepath)
+void parse_file(const char* filepath)
 {
     using Routine = core::Routine;
     using State = core::State;
@@ -20,13 +20,13 @@ void parse_file(const char *filepath)
 
     Routine routine = Routine::READ;    // initially in read routine
 
-    FILE *file = fopen(filepath, "r");
+    FILE* file = fopen(filepath, "r");
     char buf[buf_size] = {0};
     size_t nread = 0;
 
-    while ((nread = fread(buf, sizeof(buf[0]), buf_size, file)) == buf_size) {
-        const char *begin = buf; 
-        const char *end = buf + nread;
+    while ((nread = fread(buf, sizeof(buf[0]), buf_size, file)) > 0) {
+        const char* begin = buf; 
+        const char* end = buf + nread;
 
         while (begin != end) {
             switch (routine) {
@@ -44,7 +44,7 @@ void parse_file(const char *filepath)
 }
 
 // Parse files in a given directory
-void parse_dir(const char *dirpath)
+void parse_dir(const char* dirpath)
 {
     //for (auto& file_path : std::directory_iterator(dirpath)) {
     //        parse_file(file_path);

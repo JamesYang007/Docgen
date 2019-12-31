@@ -25,13 +25,13 @@ template <Routine routine_tag>
 struct routine
 {
     template <class Cache>
-    static Routine run(Cache& cache, const char *&begin, const char *end);
+    static Routine run(Cache& cache, const char*& begin, const char* end);
 };
 
 namespace details {
 
 template <class Cache>
-inline Routine process_slash(Cache& cache, const char *&begin, const char *end)
+inline Routine process_slash(Cache& cache, const char*& begin, const char* end)
 {
     Routine next_routine = Routine::READ;
 
@@ -65,8 +65,8 @@ inline Routine process_slash(Cache& cache, const char *&begin, const char *end)
 // an empty string or equivalent to "/" at time of call.
 template <>
 template <class Cache>
-inline Routine routine<Routine::READ>::run(Cache& cache, const char *&begin, 
-                                           const char *end)
+inline Routine routine<Routine::READ>::run(Cache& cache, const char*& begin, 
+                                           const char* end)
 {
     const bool slash_match = !strcmp(cache.symbol.get(), "/");
 
