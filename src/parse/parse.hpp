@@ -1,5 +1,6 @@
 #pragma once
 #include <cstdio>
+#include <type_traits>
 #include "core/routine.hpp"
 #include "core/cache.hpp"
 
@@ -9,15 +10,20 @@ namespace parse {
 // Parse a file given a filepath.
 void parse_file(const char* filepath)
 {
-    using Routine = core::Routine;
-    using State = core::State;
-
     constexpr size_t buf_size = 1000;   // TODO: experiment later optimal size
     constexpr size_t symbol_size = 10;  // TODO: figure out optimal symbol size statically later
 
-    core::Cache<symbol_size> cache;
-    cache.state = State::DEFAULT;       // initially in default state
+    using Routine = core::Routine;
+    using cache_t = core::Cache<symbol_size>;
 
+    // Note: must be same order as Routine values
+    static constexpr core::parser_t<cache_t> parser = {
+        core::routine<Routine::READ>::template run<cache_t>,
+        core::routine<Routine::IGNORE_WS>::template run<cache_t>,
+        core::routine<Routine::PROCESS>::template run<cache_t>
+    };
+
+    cache_t cache;
     Routine routine = Routine::READ;    // initially in read routine
 
     FILE* file = fopen(filepath, "r");
@@ -27,18 +33,8 @@ void parse_file(const char* filepath)
     while ((nread = fread(buf, sizeof(buf[0]), buf_size, file)) > 0) {
         const char* begin = buf; 
         const char* end = buf + nread;
-
         while (begin != end) {
-            switch (routine) {
-                case Routine::READ:
-                    routine = core::routine<Routine::READ>::run(cache, begin, end);
-                    break;
-
-                // TODO: other routines
-                
-                default:
-                    break;
-            }
+            routine = parser[static_cast<size_t>(routine)](cache, begin, end);
         }
     }
 }

@@ -1,5 +1,6 @@
 #pragma once
 #include <cstring>
+#include <array>
 #include "state.hpp"
 
 namespace docgen {
@@ -10,7 +11,8 @@ namespace core {
 enum class Routine {
     READ = 0,
     IGNORE_WS,
-    PROCESS
+    PROCESS,
+    NUM_ROUTINES
 };
 
 // Forward-declaration of a routine.
@@ -90,6 +92,15 @@ inline Routine routine<Routine::READ>::run(Cache& cache, const char*& begin,
 
     return Routine::READ;
 }
+
+/////////////////////////////////////////////////
+// Parser (array of routines) 
+/////////////////////////////////////////////////
+
+template <class Cache>
+using routine_t = decltype(&routine<Routine::READ>::template run<Cache>);
+template <class Cache>
+using parser_t = std::array<routine_t<Cache>, static_cast<size_t>(Routine::NUM_ROUTINES)>;
 
 } // namespace core
 } // namespace parse

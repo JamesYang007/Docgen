@@ -13,7 +13,7 @@ namespace core {
 template <size_t MaxSymbolSize>
 struct Cache
 {
-    State state;        
+    State state = State::DEFAULT; 
     Symbol<MaxSymbolSize> symbol;
     nlohmann::json parsed;
 };
