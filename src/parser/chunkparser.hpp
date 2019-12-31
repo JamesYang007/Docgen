@@ -21,7 +21,7 @@ public:
 private:
 
     // stores parsed information
-    nlohmann::json json;
+    nlohmann::json parsed_;
 
     // Tags indicating possible states of a ChunkParser object.
     enum State {
