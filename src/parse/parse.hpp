@@ -70,19 +70,18 @@ inline Routine routine<Routine::PROCESS_END_BLOCK>(State& state, const char *&be
 // Parse a file given a filepath.
 void parse_file(const char *filepath)
 {
-    // Propagate types
     using Routine = core::Routine;
     using State = core::State;
 
     // All routine functions must have the same prototype.
-    // We may (arbitrarily) use function pointer type 
-    // of read_routine to set the following alias. 
+    // We may arbitrarily use function pointer type of one of them.
     using parser_routine_t = decltype(&core::routine<Routine::READ>);
     static constexpr size_t array_size = static_cast<size_t>(Routine::NUM_ROUTINES);
     using parser_t = std::array<parser_routine_t, array_size>;
 
-    // parser_[i] is the ith routine function associated with ith enum value in State
-    // NOTE: the order of enum State values must match exactly with the order of routines below.
+    // parser[i] is the ith routine function.
+    // NOTE: the order of enum class Routine values 
+    // MUST exactly match the order of routines below.
     static constexpr parser_t parser = {
         core::routine<Routine::READ>,
         core::routine<Routine::SLASH>,
@@ -91,9 +90,10 @@ void parse_file(const char *filepath)
         core::routine<Routine::PROCESS>,
         core::routine<Routine::PROCESS_END_BLOCK>
     };
+
     State state = State::DEFAULT;       // initially in default state
     Routine routine = Routine::READ;    // initially in read routine
-    nlohmann::json parsed;
+    nlohmann::json parsed;              // store parsed json information
 
     // open filepath
     // while (reading chunk) {
