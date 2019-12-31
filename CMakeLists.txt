@@ -16,6 +16,11 @@ enable_testing()
 # Set C++11 standard for project target
 set(CMAKE_CXX_STANDARD 11)
 
+# Set install destinations
+set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/${CMAKE_INSTALL_LIBDIR})
+set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/${CMAKE_INSTALL_LIBDIR})
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/${CMAKE_INSTALL_BINDIR})
+
 # Create DocgenConfigVersion.cmake which contains current project version
 # This is supposed to help with (major) version compatibility.
 include(CMakePackageConfigHelpers)
@@ -28,17 +33,10 @@ configure_package_config_file(
     INSTALL_DESTINATION
     ${CMAKE_INSTALL_DATAROOTDIR}/${PROJECT_NAME}/cmake)
 
-install(EXPORT ${PROJECT_NAME}_Targets
-        FILE ${PROJECT_NAME}Targets.cmake
-        NAMESPACE ${PROJECT_NAME}::
-        DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/${PROJECT_NAME}/cmake)
-
 install(FILES
         "${PROJECT_BINARY_DIR}/${PROJECT_NAME}Config.cmake"
         "${PROJECT_BINARY_DIR}/${PROJECT_NAME}ConfigVersion.cmake"
         DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/${PROJECT_NAME}/cmake)
-
-install(DIRECTORY ${PROJECT_SOURCE_DIR}/include DESTINATION ${CMAKE_INSTALL_PREFIX})
 
 # Automate the choosing of config
 # if CMAKE_BUILD_TYPE not defined
@@ -53,8 +51,9 @@ if (NOT CMAKE_BUILD_TYPE)
 endif()
 message(STATUS "Compiling in ${CMAKE_BUILD_TYPE} mode")
 
-# add test subdirectory
-add_subdirectory(${PROJECT_SOURCE_DIR}/test ${PROJECT_BINARY_DIR}/test)
+# Points to the root of Google Test
+set(GTEST_DIR ${PROJECT_SOURCE_DIR}/libs/benchmark/googletest/googletest)
+set(GBENCH_DIR ${PROJECT_SOURCE_DIR}/libs/benchmark)
 
 # add libs subdirectory
 add_subdirectory(${PROJECT_SOURCE_DIR}/libs ${PROJECT_BINARY_DIR}/libs)
