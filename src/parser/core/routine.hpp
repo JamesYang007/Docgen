@@ -2,6 +2,7 @@
 #include <nlohmann/json.hpp>
 
 namespace docgen {
+namespace parser {
 namespace core {
 
 // These routines will parse the chunk of text starting at begin
@@ -23,4 +24,5 @@ inline void block_routine(const char *&begin, const char *end, nlohmann::json& j
 }
 
 } // namespace core
+} // namespace parser
 } // namespace docgen

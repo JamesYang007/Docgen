@@ -3,6 +3,7 @@
 #include <nlohmann/json.hpp>
 
 namespace docgen {
+namespace parser {
 
 //////////////////////////////////////////////////////
 // ChunkParser Declaration
@@ -63,4 +64,5 @@ private:
     };
 };
 
+} // namespace parser
 } // namespace docgen

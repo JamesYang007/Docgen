@@ -1,6 +1,7 @@
 #include "chunkparser.hpp"
 
 namespace docgen {
+namespace parser {
 
 void ChunkParser::parse(const char *begin, 
                         const char *end)
@@ -30,5 +31,5 @@ ChunkParser::State ChunkParser::block_routine(const char *&begin,
     // TODO: implement
 }
 
-
+} // namespace parser
 } // namespace docgen
