@@ -1,26 +1,16 @@
 #pragma once
-#include <nlohmann/json.hpp>
+#include <cstring>
+#include "state.hpp"
 
 namespace docgen {
 namespace parse {
 namespace core {
 
-// Tags indicating possible states 
-enum class State {
-    DEFAULT = 0,
-    SINGLE_LINE,
-    BLOCK
-}; 
-
-// Tags indicating possible routines 
+// Tags indicate possible routines 
 enum class Routine {
     READ = 0,
-    SLASH,
     IGNORE_WS,
-    IGNORE_WS_END_BLOCK,
-    PROCESS,
-    PROCESS_END_BLOCK,
-    NUM_ROUTINES
+    PROCESS
 };
 
 // Forward-declaration of a routine.
@@ -30,69 +20,76 @@ enum class Routine {
 // When a state changes or the chunk has been fully read, the routine will finish.
 // It will always return the next routine to execute.
 // routine will perform differently depending on routine_tag.
-template <Routine routine_tag>
-inline Routine routine(State& state, const char *&begin, 
-                       const char *end, nlohmann::json& parsed);
 
-template <>
-inline Routine routine<Routine::READ>(State&, const char *&begin, 
-                                      const char *end, nlohmann::json&)
+template <Routine routine_tag>
+struct routine
 {
+    template <class Cache>
+    static Routine run(Cache& cache, const char *&begin, const char *end);
+};
+
+namespace details {
+
+template <class Cache>
+inline Routine process_slash(Cache& cache, const char *&begin, const char *end)
+{
+    Routine next_routine = Routine::READ;
+
+    if (begin == end) {
+        return next_routine;
+    }
+
+    // single-line
+    if (*begin == '/') {
+        cache.state = State::SINGLE_LINE;
+        next_routine = Routine::IGNORE_WS;
+    }
+
+    // block
+    else if (*begin == '*') {
+        cache.state = State::BLOCK;
+        next_routine = Routine::IGNORE_WS;
+    }
+
+    cache.symbol.clear();
+    ++begin;
+
+    return next_routine;
+}
+
+} // namespace details
+
+// Read routine will read from begin until end change states
+// only to parse function/class declarations or single-line/block comments.
+// It is expected that symbol inside cache is either 
+// an empty string or equivalent to "/" at time of call.
+template <>
+template <class Cache>
+inline Routine routine<Routine::READ>::run(Cache& cache, const char *&begin, 
+                                           const char *end)
+{
+    const bool slash_match = !strcmp(cache.symbol.get(), "/");
+
+    // at time of call, slash match with symbol from previous call
+    if (slash_match) {
+        return details::process_slash(cache, begin, end);
+    }
+
     while (begin != end) {
+
+        // first time seeing '/'
         if (*begin == '/') {
-            ++begin;
-            return Routine::SLASH;
+            cache.symbol.push_back('/');
+            return details::process_slash(cache, ++begin, end);
         }
+
         // TODO: function/class declaration
+        
         ++begin;
     }
+
     return Routine::READ;
 }
-
-template <>
-inline Routine routine<Routine::SLASH>(State& state, const char *&begin, 
-                                       const char *end, nlohmann::json&)
-{
-    while (begin != end) {
-        // single-line comment
-        if (*begin == '/') {
-            ++begin; 
-            state = State::SINGLE_LINE;
-            return Routine::IGNORE_WS;
-        }
-
-        // block comment
-        if (*begin == '*') {
-            ++begin;
-            state = State::BLOCK;
-            return Routine::IGNORE_WS;
-        }
-
-        ++begin;
-    }
-
-    return Routine::SLASH;
-}
-
-template <>
-inline Routine routine<Routine::IGNORE_WS>(State& state, const char *&begin, 
-                                           const char *end, nlohmann::json& parsed)
-{}
-
-template <>
-inline Routine routine<Routine::IGNORE_WS_END_BLOCK>(State& state, const char *&begin, 
-                                                     const char *end, nlohmann::json& parsed)
-{}
-
-template <>
-inline Routine routine<Routine::PROCESS>(State& state, const char *&begin, 
-                                         const char *end, nlohmann::json& parsed)
-{}
-
-template <>
-inline Routine routine<Routine::PROCESS_END_BLOCK>(State& state, const char *&begin, 
-                                                   const char *end, nlohmann::json& parsed)
-{}
 
 } // namespace core
 } // namespace parse

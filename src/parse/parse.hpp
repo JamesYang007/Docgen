@@ -1,6 +1,7 @@
 #pragma once
+#include <cstdio>
 #include "core/routine.hpp"
-#include <array>
+#include "core/cache.hpp"
 
 namespace docgen {
 namespace parse {
@@ -11,35 +12,35 @@ void parse_file(const char *filepath)
     using Routine = core::Routine;
     using State = core::State;
 
-    // All routine functions must have the same prototype.
-    // We may arbitrarily use function pointer type of one of them.
-    using parser_routine_t = decltype(&core::routine<Routine::READ>);
-    static constexpr size_t array_size = static_cast<size_t>(Routine::NUM_ROUTINES);
-    using parser_t = std::array<parser_routine_t, array_size>;
+    constexpr size_t buf_size = 1000;   // TODO: experiment later optimal size
+    constexpr size_t symbol_size = 10;  // TODO: figure out optimal symbol size statically later
 
-    // parser[i] is the ith routine function.
-    // NOTE: the order of enum class Routine values 
-    // MUST exactly match the order of routines below.
-    static constexpr parser_t parser = {
-        core::routine<Routine::READ>,
-        core::routine<Routine::SLASH>,
-        core::routine<Routine::IGNORE_WS>,
-        core::routine<Routine::IGNORE_WS_END_BLOCK>,
-        core::routine<Routine::PROCESS>,
-        core::routine<Routine::PROCESS_END_BLOCK>
-    };
+    core::Cache<symbol_size> cache;
+    cache.state = State::DEFAULT;       // initially in default state
 
-    State state = State::DEFAULT;       // initially in default state
     Routine routine = Routine::READ;    // initially in read routine
-    nlohmann::json parsed;              // store parsed json information
 
-    // open filepath
-    // while (reading chunk) {
-    // set begin and end accordingly
-    //      while (begin != end) {
-    //          routine = parser[static_cast<size_t>(routine)](state, begin, end, parsed);
-    //      }
-    // }
+    FILE *file = fopen(filepath, "r");
+    char buf[buf_size] = {0};
+    size_t nread = 0;
+
+    while ((nread = fread(buf, sizeof(buf[0]), buf_size, file)) == buf_size) {
+        const char *begin = buf; 
+        const char *end = buf + nread;
+
+        while (begin != end) {
+            switch (routine) {
+                case Routine::READ:
+                    routine = core::routine<Routine::READ>::run(cache, begin, end);
+                    break;
+
+                // TODO: other routines
+                
+                default:
+                    break;
+            }
+        }
+    }
 }
 
 // Parse files in a given directory
