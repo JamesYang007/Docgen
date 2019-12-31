@@ -1,6 +1,7 @@
 #pragma once
 #include <cstdio>
 #include <type_traits>
+#include <memory>
 #include "core/routine.hpp"
 #include "core/cache.hpp"
 
@@ -30,11 +31,13 @@ void parse_file(const char* filepath)
     cache_t cache;
     Routine routine = Routine::READ;    // initially in read routine
 
-    FILE* file = fopen(filepath, "r");
+    std::shared_ptr<FILE> file(fopen(filepath, "r"), 
+                               [](FILE* file) { fclose(file); }
+                               );
     char buf[buf_size] = {0};
     size_t nread = 0;
 
-    while ((nread = fread(buf, sizeof(buf[0]), buf_size, file)) > 0) {
+    while ((nread = fread(buf, sizeof(buf[0]), buf_size, file.get())) > 0) {
         const char* begin = buf; 
         const char* end = buf + nread;
         while (begin != end) {
