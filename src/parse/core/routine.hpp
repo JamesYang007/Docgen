@@ -99,8 +99,39 @@ inline Routine routine<Routine::READ>::run(Cache& cache, const char*& begin,
 
 template <class Cache>
 using routine_t = decltype(&routine<Routine::READ>::template run<Cache>);
+
 template <class Cache>
-using parser_t = std::array<routine_t<Cache>, static_cast<size_t>(Routine::NUM_ROUTINES)>;
+struct RoutineArray
+    : std::array<routine_t<Cache>, static_cast<size_t>(Routine::NUM_ROUTINES)>
+{};
+
+namespace details {
+
+template <bool cond, class T=void>
+using enable_if_t = typename std::enable_if<cond, T>::type;
+
+template <size_t I, class Cache>
+constexpr enable_if_t<(I == static_cast<size_t>(Routine::NUM_ROUTINES)), bool>
+is_properly_ordered(const RoutineArray<Cache>& parser)
+{
+    return true;
+}
+
+template <size_t I, class Cache>
+constexpr enable_if_t<(I < static_cast<size_t>(Routine::NUM_ROUTINES)), bool>
+is_properly_ordered(const RoutineArray<Cache>& parser)
+{
+    return (parser[I] == &routine<static_cast<Routine>(I)>::template run<Cache>) &&
+            is_properly_ordered<I+1>(parser);
+}
+
+} // namespace details
+
+template <class Cache>
+constexpr bool is_properly_ordered(const RoutineArray<Cache>& parser)
+{
+    return details::is_properly_ordered<0>(parser);
+}
 
 } // namespace core
 } // namespace parse

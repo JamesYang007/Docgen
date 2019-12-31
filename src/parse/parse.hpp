@@ -16,12 +16,16 @@ void parse_file(const char* filepath)
     using Routine = core::Routine;
     using cache_t = core::Cache<symbol_size>;
 
-    // Note: must be same order as Routine values
-    static constexpr core::parser_t<cache_t> parser = {
+    static constexpr core::RoutineArray<cache_t> routines = {{
         core::routine<Routine::READ>::template run<cache_t>,
         core::routine<Routine::IGNORE_WS>::template run<cache_t>,
         core::routine<Routine::PROCESS>::template run<cache_t>
-    };
+    }};
+
+    static_assert(core::is_properly_ordered(routines), 
+            "RoutineArray is initialized improperly. "
+            "It must be intialized in the same order as core::Routine."
+            );
 
     cache_t cache;
     Routine routine = Routine::READ;    // initially in read routine
@@ -34,7 +38,7 @@ void parse_file(const char* filepath)
         const char* begin = buf; 
         const char* end = buf + nread;
         while (begin != end) {
-            routine = parser[static_cast<size_t>(routine)](cache, begin, end);
+            routine = routines[static_cast<size_t>(routine)](cache, begin, end);
         }
     }
 }
