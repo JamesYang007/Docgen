@@ -1,20 +1,20 @@
 # Adds strict debug compile options,
 # includes directories, and links to googletest.
 # TEST_TARGET is added as a test and an executable named ${TEST_NAME} will be created.
-function(create_test TEST_TARGET TEST_NAME)
-    target_compile_options(TEST_TARGET PRIVATE -g -Wall -Werror -Wextra)
-    target_include_directories(TEST_TARGET
-        PRIVATE ${GTEST_DIR}/include ${PROJECT_BINARY_DIR}/src)
-    target_link_libraries(TEST_TARGET gtest_main pthread)
-    add_test(TEST_TARGET ${TEST_NAME})
+function(create_test TEST_NAME TEST_TARGET)
+    target_compile_options(${TEST_TARGET} PRIVATE -g -Wall -Werror -Wextra)
+    target_include_directories(${TEST_TARGET}
+        PRIVATE ${GTEST_DIR}/include ${PROJECT_SOURCE_DIR}/src)
+    target_link_libraries(${TEST_TARGET} gtest_main pthread)
+    add_test(${TEST_NAME} ${TEST_TARGET})
 endfunction(create_test)
 
 ######################################################
 # Exception Unit Tests
 ######################################################
 
-add_executable(EXCEPTION_TESTS
-               exceptions/exceptions_unittest.cpp
+add_executable(exceptions_unittest
+               ${CMAKE_CURRENT_SOURCE_DIR}/exceptions/exceptions_unittest.cpp
                )
 
-create_test(EXCEPTION_TESTS exceptions_unittests)
+create_test("exceptions_unittests" exceptions_unittest)

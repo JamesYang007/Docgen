@@ -16,11 +16,6 @@ enable_testing()
 # Set C++11 standard for project target
 set(CMAKE_CXX_STANDARD 11)
 
-# Set install destinations
-set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/${CMAKE_INSTALL_LIBDIR})
-set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/${CMAKE_INSTALL_LIBDIR})
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/${CMAKE_INSTALL_BINDIR})
-
 # Create DocgenConfigVersion.cmake which contains current project version
 # This is supposed to help with (major) version compatibility.
 include(CMakePackageConfigHelpers)
@@ -60,3 +55,6 @@ find_package(nlohmann_json 3.2.0 REQUIRED)
 
 # add libs subdirectory
 add_subdirectory(${PROJECT_SOURCE_DIR}/libs ${PROJECT_BINARY_DIR}/libs)
+
+# add test subdirectory
+add_subdirectory(${PROJECT_SOURCE_DIR}/test ${PROJECT_BINARY_DIR}/test)
