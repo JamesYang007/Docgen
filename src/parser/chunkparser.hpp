@@ -18,6 +18,11 @@ public:
     void parse(const char *begin, 
                const char *end);
 
+    const nlohmann::json& get_parsed() const
+    {
+        return parsed_;
+    }
+
 private:
 
     // stores parsed information
