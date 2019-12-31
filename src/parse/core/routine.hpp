@@ -35,14 +35,44 @@ inline Routine routine(State& state, const char *&begin,
                        const char *end, nlohmann::json& parsed);
 
 template <>
-inline Routine routine<Routine::READ>(State& state, const char *&begin, 
+inline Routine routine<Routine::READ>(State&, const char *&begin, 
                                       const char *end, nlohmann::json&)
-{}
+{
+    while (begin != end) {
+        if (*begin == '/') {
+            ++begin;
+            return Routine::SLASH;
+        }
+        // TODO: function/class declaration
+        ++begin;
+    }
+    return Routine::READ;
+}
 
 template <>
 inline Routine routine<Routine::SLASH>(State& state, const char *&begin, 
-                                       const char *end, nlohmann::json& parsed)
-{}
+                                       const char *end, nlohmann::json&)
+{
+    while (begin != end) {
+        // single-line comment
+        if (*begin == '/') {
+            ++begin; 
+            state = State::SINGLE_LINE;
+            return Routine::IGNORE_WS;
+        }
+
+        // block comment
+        if (*begin == '*') {
+            ++begin;
+            state = State::BLOCK;
+            return Routine::IGNORE_WS;
+        }
+
+        ++begin;
+    }
+
+    return Routine::SLASH;
+}
 
 template <>
 inline Routine routine<Routine::IGNORE_WS>(State& state, const char *&begin, 
