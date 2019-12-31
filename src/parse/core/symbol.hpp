@@ -13,6 +13,11 @@ template <size_t N>
 class Symbol
 {
 public:
+
+    Symbol() noexcept
+        : buf_({0})
+    {}
+
     // insert char in the next unassigned spot (O(1))
     void push_back(char x) 
     {
@@ -32,6 +37,7 @@ public:
     void clear()
     {
         end_ = 0;
+        buf_[end_] = 0; // null-terminate
     }
 
 private:

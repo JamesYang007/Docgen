@@ -18,3 +18,13 @@ add_executable(exceptions_unittest
                )
 
 create_test("exceptions_unittests" exceptions_unittest)
+
+######################################################
+# Parse Unit Tests
+######################################################
+
+add_executable(parse_unittest
+               ${CMAKE_CURRENT_SOURCE_DIR}/parse/core/symbol_unittest.cpp
+               )
+
+create_test("parse_unittest" parse_unittest)
