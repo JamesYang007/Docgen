@@ -10,43 +10,43 @@ namespace exceptions {
 
 class exception : public std::exception
 {
-	public:
-		explicit exception(const std::string& msg) noexcept
-			: msg_(prefix_ + msg)
-		{}
+public:
+    explicit exception(const std::string& msg) noexcept
+        : msg_(prefix_ + msg)
+    {}
 
-		virtual const char *what() const noexcept
-		{
-			return msg_.c_str();
-		}
+    virtual const char *what() const noexcept
+    {
+        return msg_.c_str();
+    }
 
-	private:
-		static constexpr const char *prefix_ = "Docgen encountered a problem: ";
-		std::string msg_;
+private:
+    static constexpr const char *prefix_ = "Docgen encountered a problem: ";
+    std::string msg_;
 };
 
 class system_error : public exception
 {
-	public:
-		explicit system_error(const std::string& msg) noexcept
-			: exception(msg + ": " + strerror(errno))
-		{}
+public:
+    explicit system_error(const std::string& msg) noexcept
+        : exception(msg + ": " + std::strerror(errno))
+    {}
 };
 
 class control_flow_error : public exception
 {
-	public:
-		explicit control_flow_error(const std::string& msg) noexcept
-			: exception("control flow error: " + msg)
-		{}
+public:
+    explicit control_flow_error(const std::string& msg) noexcept
+        : exception("control flow error: " + msg)
+    {}
 };
 
 class bad_flags : public exception
 {
-	public:
-		bad_flags() noexcept
-			: exception("bad flags")
-		{}
+public:
+    bad_flags() noexcept
+        : exception("bad flags")
+    {}
 };
 
 } // namespace exceptions
