@@ -1,0 +1,20 @@
+# Adds strict debug compile options,
+# includes directories, and links to googletest.
+# TEST_TARGET is added as a test and an executable named ${TEST_NAME} will be created.
+function(create_test TEST_TARGET TEST_NAME)
+    target_compile_options(TEST_TARGET PRIVATE -g -Wall -Werror -Wextra)
+    target_include_directories(TEST_TARGET
+        PRIVATE ${GTEST_DIR}/include ${PROJECT_BINARY_DIR}/src)
+    target_link_libraries(TEST_TARGET gtest_main pthread)
+    add_test(TEST_TARGET ${TEST_NAME})
+endfunction(create_test)
+
+######################################################
+# Exception Unit Tests
+######################################################
+
+add_executable(EXCEPTION_TESTS
+               exceptions/exceptions_unittest.cpp
+               )
+
+create_test(EXCEPTION_TESTS exceptions_unittests)
