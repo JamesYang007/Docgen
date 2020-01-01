@@ -77,6 +77,8 @@ inline Routine routine<Routine::READ>::run(Cache& cache, const char*& begin,
 {
     const bool slash_match = !strcmp(cache.symbol.get(), "/");
 
+    assert(slash_match || strcmp(cache.symbol.get(), ""));
+
     // at time of call, slash match with symbol from previous call
     if (slash_match) {
         return details::process_slash(cache, begin, end);
