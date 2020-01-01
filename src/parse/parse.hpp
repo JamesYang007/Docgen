@@ -4,7 +4,6 @@
 #include <memory>
 #include "core/routine.hpp"
 #include "core/cache.hpp"
-#include "utility/file_deleter.hpp"
 
 namespace docgen {
 namespace parse {
@@ -26,13 +25,13 @@ void parse_file(const char* filepath)
     char buf[buf_size] = {0};
     size_t nread = 0;
 
-    while ((nread = fread(buf, sizeof(buf[0]), buf_size, file.get())) > 0) {
+    while ((nread = fread(buf, sizeof(buf[0]), buf_size, file)) > 0) {
         const char* begin = buf; 
         const char* end = buf + nread;
         while (begin != end) {
             switch(routine) {
                 case Routine::READ:
-                    routine = core::routine<Routine::READ>::template run(cache, begin, end);
+                    routine = core::routine<Routine::READ>::run(cache, begin, end);
                     break;
 
                 // TODO: other routines
