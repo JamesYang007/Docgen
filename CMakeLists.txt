@@ -55,5 +55,8 @@ message(STATUS "Compiling in ${CMAKE_BUILD_TYPE} mode")
 set(GTEST_DIR ${PROJECT_SOURCE_DIR}/libs/benchmark/googletest/googletest)
 set(GBENCH_DIR ${PROJECT_SOURCE_DIR}/libs/benchmark)
 
+# find json library
+find_package(nlohmann_json 3.2.0 REQUIRED)
+
 # add libs subdirectory
 add_subdirectory(${PROJECT_SOURCE_DIR}/libs ${PROJECT_BINARY_DIR}/libs)
