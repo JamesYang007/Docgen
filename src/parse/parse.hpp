@@ -52,9 +52,7 @@ void parse_file(const char* filepath)
 // Parse files in a given directory
 void parse_dir(const char* dirpath)
 {
-    //for (auto& file_path : std::directory_iterator(dirpath)) {
-    //        parse_file(file_path);
-    //}   
+    // TODO: implement
 }
 
 } // namespace parse
