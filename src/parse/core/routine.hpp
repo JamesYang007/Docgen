@@ -36,6 +36,10 @@ namespace details {
 template <class Cache>
 inline Routine process_slash(Cache& cache, const char*& begin, const char* end)
 {
+    // symbol should always be equivalent to "/"
+    assert(cache.symbol.get()[0] == '/' && 
+           cache.symbol.get()[1] == '\0');
+
     Routine next_routine = Routine::READ;
 
     if (begin == end) {
