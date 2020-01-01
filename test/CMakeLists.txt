@@ -14,19 +14,19 @@ endfunction(create_test)
 # Exception Unit Tests
 ######################################################
 
-add_executable(exceptions_unittest
+add_executable(exceptions_unittests
                ${CMAKE_CURRENT_SOURCE_DIR}/exceptions/exceptions_unittest.cpp
                )
 
-create_test("exceptions_unittests" exceptions_unittest)
+create_test("exceptions_unittests" exceptions_unittests)
 
 ######################################################
 # Parse Unit Tests
 ######################################################
 
-add_executable(parse_unittest
+add_executable(parse_unittests
                ${CMAKE_CURRENT_SOURCE_DIR}/parse/core/symbol_unittest.cpp
                ${CMAKE_CURRENT_SOURCE_DIR}/parse/core/read_routine_unittest.cpp
                )
 
-create_test("parse_unittests" parse_unittest)
+create_test("parse_unittests" parse_unittests)
