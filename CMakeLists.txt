@@ -13,8 +13,8 @@ include(GNUInstallDirs)
 # enables testing
 enable_testing()
 
-# Set C++11 standard for project target
-set(CMAKE_CXX_STANDARD 11)
+# Set C++14 standard for project target
+set(CMAKE_CXX_STANDARD 14)
 
 # Create DocgenConfigVersion.cmake which contains current project version
 # This is supposed to help with (major) version compatibility.
