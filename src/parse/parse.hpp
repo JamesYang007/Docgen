@@ -4,20 +4,10 @@
 #include <memory>
 #include "core/routine.hpp"
 #include "core/cache.hpp"
+#include "utility/file_deleter.hpp"
 
 namespace docgen {
 namespace parse {
-namespace details {
-
-struct file_deleter
-{
-    void operator()(FILE* file) const
-    {
-        fclose(file);
-    }
-};
-
-} // namespace details
 
 // Parse a file given a filepath.
 void parse_file(const char* filepath)
@@ -34,8 +24,8 @@ void parse_file(const char* filepath)
     cache_t cache;
     Routine routine = Routine::READ;    // initially in read routine
 
-    using file_ptr_t = std::unique_ptr<FILE, details::file_deleter>;
-    file_ptr_t file(fopen(filepath, "r"), details::file_deleter());
+    using file_ptr_t = std::unique_ptr<FILE, utils::file_deleter>;
+    file_ptr_t file(fopen(filepath, "r"), utils::file_deleter());
 
     char buf[buf_size] = {0};
     size_t nread = 0;
@@ -47,12 +37,6 @@ void parse_file(const char* filepath)
             routine = routines[static_cast<size_t>(routine)](cache, begin, end);
         }
     }
-}
-
-// Parse files in a given directory
-void parse_dir(const char* dirpath)
-{
-    // TODO: implement
 }
 
 } // namespace parse
