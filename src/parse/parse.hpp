@@ -17,9 +17,6 @@ void parse_file(const char* filepath)
 
     using Routine = core::Routine;
     using cache_t = core::Cache<symbol_size>;
-    using routine_array_t = core::routine_array_t<cache_t>;
-
-    static constexpr routine_array_t routines = core::make_routines<cache_t>();
 
     cache_t cache;
     Routine routine = Routine::READ;    // initially in read routine
@@ -34,7 +31,15 @@ void parse_file(const char* filepath)
         const char* begin = buf; 
         const char* end = buf + nread;
         while (begin != end) {
-            routine = routines[static_cast<size_t>(routine)](cache, begin, end);
+            switch(routine) {
+                case Routine::READ:
+                    routine = core::routine<Routine::READ>::template run(cache, begin, end);
+                    break;
+
+                // TODO: other routines
+                default:
+                    break;
+            }
         }
     }
 }

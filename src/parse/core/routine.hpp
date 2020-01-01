@@ -84,7 +84,7 @@ inline Routine routine<Routine::READ>::run(Cache& cache, const char*& begin,
         return details::process_slash(cache, begin, end);
     }
 
-    while (begin != end) {
+    for (; begin != end; ++begin) {
 
         // first time seeing '/'
         if (*begin == '/') {
@@ -93,8 +93,6 @@ inline Routine routine<Routine::READ>::run(Cache& cache, const char*& begin,
         }
 
         // TODO: function/class declaration
-        
-        ++begin;
     }
 
     return Routine::READ;
@@ -122,35 +120,6 @@ inline Routine routine<Routine::PROCESS>::run(Cache& cache, const char*& begin,
     static_cast<void>(begin);
     static_cast<void>(end);
     return Routine::PROCESS;
-}
-
-/////////////////////////////////////////////////
-// Parser (array of routines) 
-/////////////////////////////////////////////////
-
-template <class Cache>
-using routine_t = decltype(&routine<Routine::READ>::template run<Cache>);
-
-template <class Cache>
-using routine_array_t = std::array<routine_t<Cache>, static_cast<size_t>(Routine::NUM_ROUTINES)>;
-
-// make_routines<Cache> creates a routine_array_t<Cache> at compile-time.
-// It is guaranteed that the order of routines in the array matches exactly 
-// that of Routine enum class value list.
-namespace details {
-
-template <class Cache, size_t... I>
-constexpr routine_array_t<Cache> make_routines(std::index_sequence<I...>)
-{
-    return {&routine<static_cast<Routine>(I)>::template run<Cache>...};
-}
-
-} // namespace details
-
-template <class Cache, size_t Routines = static_cast<size_t>(Routine::NUM_ROUTINES)>
-constexpr routine_array_t<Cache> make_routines()
-{
-    return details::make_routines<Cache>(std::make_index_sequence<Routines>());
 }
 
 } // namespace core
