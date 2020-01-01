@@ -1,6 +1,7 @@
 #pragma once
 #include <cstring>
 #include <array>
+#include <utility>
 #include "state.hpp"
 
 namespace docgen {
@@ -93,6 +94,30 @@ inline Routine routine<Routine::READ>::run(Cache& cache, const char*& begin,
     return Routine::READ;
 }
 
+template <>
+template <class Cache>
+inline Routine routine<Routine::IGNORE_WS>::run(Cache& cache, const char*& begin, 
+                                                const char* end)
+{
+    // TODO: implement and replace dummy code
+    static_cast<void>(cache);
+    static_cast<void>(begin);
+    static_cast<void>(end);
+    return Routine::IGNORE_WS;
+}
+
+template <>
+template <class Cache>
+inline Routine routine<Routine::PROCESS>::run(Cache& cache, const char*& begin, 
+                                                const char* end)
+{
+    // TODO: implement and replace dummy code
+    static_cast<void>(cache);
+    static_cast<void>(begin);
+    static_cast<void>(end);
+    return Routine::PROCESS;
+}
+
 /////////////////////////////////////////////////
 // Parser (array of routines) 
 /////////////////////////////////////////////////
@@ -101,36 +126,25 @@ template <class Cache>
 using routine_t = decltype(&routine<Routine::READ>::template run<Cache>);
 
 template <class Cache>
-struct RoutineArray
-    : std::array<routine_t<Cache>, static_cast<size_t>(Routine::NUM_ROUTINES)>
-{};
+using routine_array_t = std::array<routine_t<Cache>, static_cast<size_t>(Routine::NUM_ROUTINES)>;
 
+// make_routines<Cache> creates a routine_array_t<Cache> at compile-time.
+// It is guaranteed that the order of routines in the array matches exactly 
+// that of Routine enum class value list.
 namespace details {
 
-template <bool cond, class T=void>
-using enable_if_t = typename std::enable_if<cond, T>::type;
-
-template <size_t I, class Cache>
-constexpr enable_if_t<(I == static_cast<size_t>(Routine::NUM_ROUTINES)), bool>
-is_properly_ordered(const RoutineArray<Cache>& parser)
+template <class Cache, size_t... I>
+constexpr routine_array_t<Cache> make_routines(std::index_sequence<I...>)
 {
-    return true;
-}
-
-template <size_t I, class Cache>
-constexpr enable_if_t<(I < static_cast<size_t>(Routine::NUM_ROUTINES)), bool>
-is_properly_ordered(const RoutineArray<Cache>& parser)
-{
-    return (parser[I] == &routine<static_cast<Routine>(I)>::template run<Cache>) &&
-            is_properly_ordered<I+1>(parser);
+    return {&routine<static_cast<Routine>(I)>::template run<Cache>...};
 }
 
 } // namespace details
 
-template <class Cache>
-constexpr bool is_properly_ordered(const RoutineArray<Cache>& parser)
+template <class Cache, size_t Routines = static_cast<size_t>(Routine::NUM_ROUTINES)>
+constexpr routine_array_t<Cache> make_routines()
 {
-    return details::is_properly_ordered<0>(parser);
+    return details::make_routines<Cache>(std::make_index_sequence<Routines>());
 }
 
 } // namespace core

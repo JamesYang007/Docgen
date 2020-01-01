@@ -27,17 +27,9 @@ void parse_file(const char* filepath)
 
     using Routine = core::Routine;
     using cache_t = core::Cache<symbol_size>;
+    using routine_array_t = core::routine_array_t<cache_t>;
 
-    static constexpr core::RoutineArray<cache_t> routines = {{
-        core::routine<Routine::READ>::template run<cache_t>,
-        core::routine<Routine::IGNORE_WS>::template run<cache_t>,
-        core::routine<Routine::PROCESS>::template run<cache_t>
-    }};
-
-    static_assert(core::is_properly_ordered(routines), 
-            "RoutineArray is initialized improperly. "
-            "It must be intialized in the same order as core::Routine."
-            );
+    static constexpr routine_array_t routines = core::make_routines<cache_t>();
 
     cache_t cache;
     Routine routine = Routine::READ;    // initially in read routine

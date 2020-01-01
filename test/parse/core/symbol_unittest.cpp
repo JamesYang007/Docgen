@@ -48,6 +48,7 @@ TEST_F(symbol_fixture, push_back_all)
     EXPECT_EQ(actual, expected);
 }
 
+#ifndef NDEBUG
 TEST_F(symbol_fixture, push_back_error)
 {
     for (size_t i = 0; i < symbol_size; ++i) {
@@ -55,6 +56,7 @@ TEST_F(symbol_fixture, push_back_error)
     }
     EXPECT_DEATH(symbol.push_back('a'), "Assertion failed");
 }
+#endif
 
 TEST_F(symbol_fixture, clear)
 {
