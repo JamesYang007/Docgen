@@ -5,7 +5,8 @@ function(create_test TEST_NAME TEST_TARGET)
     target_compile_options(${TEST_TARGET} PRIVATE -g -Wall -Werror -Wextra)
     target_include_directories(${TEST_TARGET}
         PRIVATE ${GTEST_DIR}/include ${PROJECT_SOURCE_DIR}/src)
-    target_link_libraries(${TEST_TARGET} gtest_main pthread)
+    target_link_libraries(${TEST_TARGET}
+        PRIVATE gtest_main pthread nlohmann_json::nlohmann_json)
     add_test(${TEST_NAME} ${TEST_TARGET})
 endfunction(create_test)
 
