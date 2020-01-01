@@ -9,7 +9,11 @@ struct symbol_fixture : ::testing::Test
 {
 protected:
     static constexpr size_t symbol_size = 10;
-    Symbol<symbol_size> symbol;
+    Symbol symbol;
+
+    symbol_fixture()
+        : symbol(symbol_size)
+    {}
 };
 
 TEST_F(symbol_fixture, get)

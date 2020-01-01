@@ -2,6 +2,7 @@
 #include <cstring>
 #include <array>
 #include <utility>
+#include "status.hpp"
 #include "state.hpp"
 
 namespace docgen {
@@ -27,8 +28,7 @@ enum class Routine {
 template <Routine routine_tag>
 struct routine
 {
-    template <class Cache>
-    static Routine run(Cache& cache, const char*& begin, const char* end);
+    static Routine run(Status& status, const char*& begin, const char* end);
 };
 
 namespace details {
@@ -38,12 +38,11 @@ namespace details {
 // If begin points to '/', change state -> SINGLE_LINE, next routine -> IGNORE_WS, clear symbol.
 // If begin points to '*', change state -> BLOCK, next routine -> IGNORE_WS, clear symbol.
 // If begin == end, this implies end of batch and hence we do not change state/symbol, and next routine -> READ.
-template <class Cache>
-inline Routine process_slash(Cache& cache, const char* begin, const char* end)
+inline Routine process_slash(Status& status, const char* begin, const char* end)
 {
     // symbol should always be equivalent to "/"
-    assert((cache.symbol.get()[0] == '/') && 
-           (cache.symbol.get()[1] == '\0'));
+    assert((status.symbol.get()[0] == '/') && 
+           (status.symbol.get()[1] == '\0'));
 
     Routine next_routine = Routine::READ;
 
@@ -53,17 +52,17 @@ inline Routine process_slash(Cache& cache, const char* begin, const char* end)
 
     // single-line
     if (*begin == '/') {
-        cache.state = State::SINGLE_LINE;
+        status.state = State::SINGLE_LINE;
         next_routine = Routine::IGNORE_WS;
     }
 
     // block
     else if (*begin == '*') {
-        cache.state = State::BLOCK;
+        status.state = State::BLOCK;
         next_routine = Routine::IGNORE_WS;
     }
 
-    cache.symbol.clear();
+    status.symbol.clear();
 
     return next_routine;
 }
@@ -87,22 +86,21 @@ inline Routine process_slash(Cache& cache, const char* begin, const char* end)
 //      next routine -> READ
 //      begin == end
 template <>
-template <class Cache>
-inline Routine routine<Routine::READ>::run(Cache& cache, const char*& begin, 
+inline Routine routine<Routine::READ>::run(Status& status, const char*& begin, 
                                            const char* end)
 {
     if (begin == end) {
         return Routine::READ;
     }
 
-    bool slash_match = ((cache.symbol.get()[0] == '/') &&
-                        (cache.symbol.get()[1] == '\0'));
+    bool slash_match = ((status.symbol.get()[0] == '/') &&
+                        (status.symbol.get()[1] == '\0'));
 
-    assert(slash_match || (cache.symbol.get()[0] == '\0'));
+    assert(slash_match || (status.symbol.get()[0] == '\0'));
 
     // slash match from previous batch
     if (slash_match) {
-        Routine next_routine = details::process_slash(cache, begin, end);
+        Routine next_routine = details::process_slash(status, begin, end);
         ++begin;
         if (next_routine != Routine::READ) {
             return next_routine;
@@ -114,7 +112,7 @@ inline Routine routine<Routine::READ>::run(Cache& cache, const char*& begin,
 
         // if previous character were a slash
         if (slash_match) {
-            Routine next_routine = details::process_slash(cache, begin, end);
+            Routine next_routine = details::process_slash(status, begin, end);
             if (next_routine != Routine::READ) {
                 ++begin;
                 return next_routine;
@@ -123,7 +121,7 @@ inline Routine routine<Routine::READ>::run(Cache& cache, const char*& begin,
         }
 
         if (*begin == '/') {
-            cache.symbol.push_back('/');
+            status.symbol.push_back('/');
             slash_match = true;
         }
 
@@ -135,24 +133,22 @@ inline Routine routine<Routine::READ>::run(Cache& cache, const char*& begin,
 }
 
 template <>
-template <class Cache>
-inline Routine routine<Routine::IGNORE_WS>::run(Cache& cache, const char*& begin, 
+inline Routine routine<Routine::IGNORE_WS>::run(Status& status, const char*& begin, 
                                                 const char* end)
 {
     // TODO: implement and replace dummy code
-    static_cast<void>(cache);
+    static_cast<void>(status);
     static_cast<void>(begin);
     static_cast<void>(end);
     return Routine::IGNORE_WS;
 }
 
 template <>
-template <class Cache>
-inline Routine routine<Routine::PROCESS>::run(Cache& cache, const char*& begin, 
+inline Routine routine<Routine::PROCESS>::run(Status& status, const char*& begin, 
                                                 const char* end)
 {
     // TODO: implement and replace dummy code
-    static_cast<void>(cache);
+    static_cast<void>(status);
     static_cast<void>(begin);
     static_cast<void>(end);
     return Routine::PROCESS;

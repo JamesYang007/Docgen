@@ -1,6 +1,6 @@
 #pragma once 
 #include <cstddef> // size_t
-#include <array>
+#include <vector>
 
 namespace docgen {
 namespace parse {
@@ -9,19 +9,18 @@ namespace core {
 // Symbol wraps an array that is used to store
 // a word that needs to be remembered across batches.
 // N is the size of the array.
-template <size_t N>
 class Symbol
 {
 public:
 
-    Symbol() noexcept
-        : buf_({0})
+    explicit Symbol(uint32_t symbol_size) noexcept
+        : buf_(symbol_size + 1, 0), max_size_(symbol_size)
     {}
 
     // insert char in the next unassigned spot (O(1))
     void push_back(char x) 
     {
-        assert(end_ < N);
+        assert(end_ < max_size_);
         buf_[end_] = x;
         ++end_;
         buf_[end_] = 0; // null-terminate
@@ -41,8 +40,9 @@ public:
     }
 
 private:
-    using buf_t = std::array<char, N + 1>;
+    using buf_t = std::vector<char>;
     buf_t buf_;
+    uint32_t max_size_;
     uint32_t end_ = 0;
 };
 

@@ -7,14 +7,17 @@ namespace docgen {
 namespace parse {
 namespace core {
 
-// Cache is a structure that needs to be remembered
+// Status is a structure that needs to be remembered
 // across batches and between routines.
 // MaxSymbolSize is the maximum symbol length (not including null-terminator).
-template <size_t MaxSymbolSize>
-struct Cache
+struct Status
 {
+    Status(uint32_t symbol_size)
+        : symbol(symbol_size)
+    {}
+
     State state = State::DEFAULT; 
-    Symbol<MaxSymbolSize> symbol;
+    Symbol symbol;
     nlohmann::json parsed;
 };
 

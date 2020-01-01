@@ -3,7 +3,6 @@
 #include <type_traits>
 #include <memory>
 #include "core/routine.hpp"
-#include "core/cache.hpp"
 
 namespace docgen {
 namespace parse {
@@ -15,9 +14,9 @@ void parse_file(const char* filepath)
     constexpr size_t symbol_size = 10;  // TODO: figure out optimal symbol size statically later
 
     using Routine = core::Routine;
-    using cache_t = core::Cache<symbol_size>;
+    using Status = core::Status;
 
-    cache_t cache;
+    Status status(symbol_size);
     Routine routine = Routine::READ;    // initially in read routine
 
     FILE* file = fopen(filepath, "r");
@@ -31,7 +30,7 @@ void parse_file(const char* filepath)
         while (begin != end) {
             switch(routine) {
                 case Routine::READ:
-                    routine = core::routine<Routine::READ>::run(cache, begin, end);
+                    routine = core::routine<Routine::READ>::run(status, begin, end);
                     break;
 
                 // TODO: other routines
