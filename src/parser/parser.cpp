@@ -99,6 +99,7 @@ class Parser : public Parser_globals
 		std::vector<Parser> parsers_;
 
 		bool betwixt_() { return cur_ == &closer_; }
+		void reset_();
 		bool proc_(char c);
 };
 
@@ -132,18 +133,29 @@ bool Parser::proc_(char c)
 			}
 		}
 		else if (!no_close) {
-			cur_ = &opener_;
 			if (to_store_) {
 				stored_.resize(stored_.length() - partial_.length());
+				on_close_(stored_.data());
 			}
-			if (on_close_) {
-				on_close_(to_store_ ? stored_.data() : &c);
+			else {
+				on_close_(&c);
 			}
 			stored_.clear();
+			cur_ = &opener_;
+			for (Parser& p : parsers_) {
+				p.reset_();
+			}
 		}
 		partial_.clear();
 	}
 	return no_close;
+}
+
+void Parser::reset_()
+{
+	cur_ = &opener_;	
+	partial_.clear();
+	stored_.clear();
 }
 
 int main()
