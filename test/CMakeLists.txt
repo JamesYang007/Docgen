@@ -36,3 +36,14 @@ add_custom_command(
         COMMAND ${CMAKE_COMMAND} -E copy_directory
                 ${CMAKE_CURRENT_SOURCE_DIR}/file_io/file_io_data/
                 $<TARGET_FILE_DIR:file_io_unittests>/file_io_data)
+
+######################################################
+# File IO Unit Tests
+######################################################
+
+add_executable(core_unittests
+               ${CMAKE_CURRENT_SOURCE_DIR}/core/lexer_routines_unittest.cpp
+               ${CMAKE_CURRENT_SOURCE_DIR}/core/lexer_unittest.cpp
+               )
+
+create_test("core_unittests" core_unittests)
