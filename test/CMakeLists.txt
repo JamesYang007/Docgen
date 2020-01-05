@@ -21,12 +21,18 @@ add_executable(exceptions_unittests
 create_test("exceptions_unittests" exceptions_unittests)
 
 ######################################################
-# Parse Unit Tests
+# File IO Unit Tests
 ######################################################
 
-add_executable(parse_unittests
-               ${CMAKE_CURRENT_SOURCE_DIR}/parse/core/symbol_unittest.cpp
-               ${CMAKE_CURRENT_SOURCE_DIR}/parse/core/read_routine_unittest.cpp
+add_executable(file_io_unittests
+               ${CMAKE_CURRENT_SOURCE_DIR}/file_io/file_reader_unittest.cpp
                )
 
-create_test("parse_unittests" parse_unittests)
+create_test("file_io_unittests" file_io_unittests)
+
+# copy data directory into where file_io_unittests executable ends up
+add_custom_command(
+        TARGET file_io_unittests POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy_directory
+                ${CMAKE_CURRENT_SOURCE_DIR}/file_io/file_io_data/
+                $<TARGET_FILE_DIR:file_io_unittests>/file_io_data)
