@@ -24,18 +24,18 @@ create_test("exceptions_unittests" exceptions_unittests)
 # File IO Unit Tests
 ######################################################
 
-add_executable(file_io_unittests
-               ${CMAKE_CURRENT_SOURCE_DIR}/file_io/file_reader_unittest.cpp
+add_executable(io_unittests
+               ${CMAKE_CURRENT_SOURCE_DIR}/io/file_reader_unittest.cpp
                )
 
-create_test("file_io_unittests" file_io_unittests)
+create_test("io_unittests" io_unittests)
 
-# copy data directory into where file_io_unittests executable ends up
+# copy data directory into where io_unittests executable ends up
 add_custom_command(
-        TARGET file_io_unittests POST_BUILD
+        TARGET io_unittests POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E copy_directory
-                ${CMAKE_CURRENT_SOURCE_DIR}/file_io/file_io_data/
-                $<TARGET_FILE_DIR:file_io_unittests>/file_io_data)
+                ${CMAKE_CURRENT_SOURCE_DIR}/io/io_data/
+                $<TARGET_FILE_DIR:io_unittests>/io_data)
 
 ######################################################
 # File IO Unit Tests

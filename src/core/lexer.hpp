@@ -1,5 +1,4 @@
 #pragma once
-#include <vector>
 #include "lexer_routines.hpp"
 
 namespace docgen {
@@ -9,35 +8,34 @@ static constexpr size_t DEFAULT_TOKEN_ARR_SIZE = 50;
 
 struct Lexer
 {
-    using token_arr_t = std::vector<token_t>;
-    using symbol_t = typename token_t::symbol_t;
+    // token_t, status_t defined in lexer_routines.hpp
+    using value_type = typename token_t::value_type;
 
-    Lexer(const char* filepath, 
-          size_t buf_size = file_io::DEFAULT_BUF_SIZE)
-        : reader(filepath, buf_size)
+    Lexer(const char* filepath)
+        : reader_(filepath)
     {
-        tokens.reserve(DEFAULT_TOKEN_ARR_SIZE);
+        status_.tokens.reserve(DEFAULT_TOKEN_ARR_SIZE);
     }
 
     void process()
     {
-        while (reader.peek()) {
-            tokens.emplace_back(core::process(reader));
+        while (reader_.peek() != EOF) {
+            status_.tokens.emplace_back(core::process(reader_, status_));
         }
 
-        if (tokens[tokens.size() - 1].name != symbol_t::eof) {
-            tokens.emplace_back(symbol_t::eof);
+        if (status_.tokens[status_.tokens.size() - 1].name != value_type::eof) {
+            status_.tokens.emplace_back(value_type::eof);
         }
     }
     
-    const token_arr_t& get_tokens() const
+    const status_t::token_arr_t& get_tokens() const
     {
-        return tokens;
+        return status_.tokens;
     }
 
 private:
-    file_io::file_reader reader;
-    token_arr_t tokens;
+    io::file_reader reader_;
+    status_t status_; // keeps track of last token value (enum)
 };
 
 } // namespace core

@@ -1,23 +1,23 @@
-#include "file_io/file_reader.hpp"
+#include "io/file_reader.hpp"
 #include <gtest/gtest.h>
 #include <unistd.h>
 
 namespace docgen {
-namespace file_io {
+namespace io {
 
 struct file_reader_fixture : ::testing::Test
 {
 protected:
-    static constexpr const char* empty_filepath = "file_io_data/empty.txt";
-    static constexpr const char* one_line_filepath = "file_io_data/one_line.txt";
-    static constexpr const char* paragraph_filepath = "file_io_data/paragraph.txt";
+    static constexpr const char* empty_filepath = "io_data/empty.txt";
+    static constexpr const char* one_line_filepath = "io_data/one_line.txt";
+    static constexpr const char* paragraph_filepath = "io_data/paragraph.txt";
 
-    void read_test(const char* filepath, size_t buf_size)
+    void read_test(const char* filepath)
     {
         // actual
-        file_reader reader(filepath, buf_size);
+        file_reader reader(filepath);
         std::string actual;
-        while (reader.peek()) {
+        while (reader.peek() != EOF) {
             actual.push_back(reader.read());
         }
 
@@ -41,31 +41,31 @@ TEST_F(file_reader_fixture, ctor)
 TEST_F(file_reader_fixture, peek_empty)
 {
     file_reader reader(empty_filepath);
-    EXPECT_EQ(reader.peek(), 0);
+    EXPECT_EQ(reader.peek(), EOF);
 }
 
 TEST_F(file_reader_fixture, read_empty_multiple)
 {
-    file_reader reader(empty_filepath, 5);
+    file_reader reader(empty_filepath);
     for (int i = 0; i < 10; ++i) {
-        EXPECT_EQ(reader.read(), 0);
+        EXPECT_EQ(reader.read(), EOF);
     }
 }
 
 TEST_F(file_reader_fixture, read_empty)
 {
-    read_test(empty_filepath, 4);
+    read_test(empty_filepath);
 }
 
 TEST_F(file_reader_fixture, read_one_line)
 {
-    read_test(one_line_filepath, 5);
+    read_test(one_line_filepath);
 }
 
 TEST_F(file_reader_fixture, read_paragraph)
 {
-    read_test(paragraph_filepath, 11);
+    read_test(paragraph_filepath);
 }
 
-} // namespace file_io
+} // namespace io
 } // namespace docgen

@@ -19,7 +19,7 @@ TEST_F(lexer_fixture, process_no_comment)
         ;
 
     write_file(content);
-    Lexer lexer(filename, buf_size);
+    Lexer lexer(filename);
     lexer.process();
     const auto& tokens = lexer.get_tokens();
 
@@ -42,7 +42,7 @@ TEST_F(lexer_fixture, process_one_line_comment)
         " a very special comment   ";
 
     write_file(content);
-    Lexer lexer(filename, buf_size);
+    Lexer lexer(filename);
     lexer.process();
     const auto& tokens = lexer.get_tokens();
 
@@ -73,7 +73,7 @@ TEST_F(lexer_fixture, process_two_line_comment)
         " another very special comment   ";
 
     write_file(content);
-    Lexer lexer(filename, buf_size);
+    Lexer lexer(filename);
     lexer.process();
     const auto& tokens = lexer.get_tokens();
 
@@ -102,7 +102,7 @@ TEST_F(lexer_fixture, process_one_block_comment)
         " a very special comment   ";
 
     write_file(content);
-    Lexer lexer(filename, buf_size);
+    Lexer lexer(filename);
     lexer.process();
     const auto& tokens = lexer.get_tokens();
 
@@ -135,7 +135,7 @@ TEST_F(lexer_fixture, process_two_block_comment)
         " another very \n    * special comment   \n";
 
     write_file(content);
-    Lexer lexer(filename, buf_size);
+    Lexer lexer(filename);
     lexer.process();
     const auto& tokens = lexer.get_tokens();
 
@@ -171,7 +171,7 @@ TEST_F(lexer_fixture, process_line_block_comment)
         " another very \n    * special comment   \n";
 
     write_file(content);
-    Lexer lexer(filename, buf_size);
+    Lexer lexer(filename);
     lexer.process();
     const auto& tokens = lexer.get_tokens();
 

@@ -3,7 +3,10 @@
 namespace docgen {
 namespace core {
 
-TEST_F(lexer_base_fixture, line_comment)
+struct lexer_routines_fixture : lexer_base_fixture
+{};
+
+TEST_F(lexer_routines_fixture, line_comment)
 {
     static constexpr const char* content =
         "very special comment \n"
@@ -12,13 +15,13 @@ TEST_F(lexer_base_fixture, line_comment)
         "very special comment ";
 
     write_file(content);
-    file_reader reader(filename, buf_size);
+    file_reader reader(filename);
     token_t token = line_comment(reader);
     check_token(token.name, DocSymbol::line_comment,
                 token.content, expected_str);
 }
 
-TEST_F(lexer_base_fixture, block_comment)
+TEST_F(lexer_routines_fixture, block_comment)
 {
     static constexpr const char* content =
         "very special comment  */"
@@ -27,13 +30,13 @@ TEST_F(lexer_base_fixture, block_comment)
         "very special comment  ";
 
     write_file(content);
-    file_reader reader(filename, buf_size);
+    file_reader reader(filename);
     token_t token = block_comment(reader);
     check_token(token.name, DocSymbol::block_comment,
                 token.content, expected_str);
 }
 
-TEST_F(lexer_base_fixture, process_line_comment)
+TEST_F(lexer_routines_fixture, process_line_comment)
 {
     static constexpr const char* content =
         "#include <gtest/gtest.h>\n"
@@ -46,13 +49,13 @@ TEST_F(lexer_base_fixture, process_line_comment)
         " a very special comment   ";
 
     write_file(content);
-    file_reader reader(filename, buf_size);
+    file_reader reader(filename);
     token_t token = process(reader);
     check_token(token.name, DocSymbol::line_comment,
                 token.content, expected_str);
 }
 
-TEST_F(lexer_base_fixture, process_block_comment)
+TEST_F(lexer_routines_fixture, process_block_comment)
 {
     static constexpr const char* content =
         "#include <gtest/gtest.h>\n"
@@ -69,7 +72,7 @@ TEST_F(lexer_base_fixture, process_block_comment)
         ;
 
     write_file(content);
-    file_reader reader(filename, buf_size);
+    file_reader reader(filename);
     token_t token = process(reader);
     check_token(token.name, DocSymbol::block_comment,
                 token.content, expected_str);

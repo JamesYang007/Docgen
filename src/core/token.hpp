@@ -7,23 +7,23 @@ namespace core {
 template <class EnumType>
 struct Token
 {
-    using symbol_t = EnumType;
+    using value_type = EnumType;
 
-    Token(symbol_t name)
+    Token(value_type name)
         : name(name)
     {}
 
-    Token(symbol_t name, const std::string& content)
+    Token(value_type name, const std::string& content)
         : name(name)
         , content(content)
     {}
 
-    Token(symbol_t name, std::string&& content)
+    Token(value_type name, std::string&& content)
         : name(name)
         , content(std::move(content))
     {}
 
-    symbol_t name;
+    value_type name;
     std::string content;
 };
 
