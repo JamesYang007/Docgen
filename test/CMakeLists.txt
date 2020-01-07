@@ -4,7 +4,10 @@
 function(create_test TEST_NAME TEST_TARGET)
     target_compile_options(${TEST_TARGET} PRIVATE -g -Wall -Werror -Wextra)
     target_include_directories(${TEST_TARGET}
-        PRIVATE ${GTEST_DIR}/include ${PROJECT_SOURCE_DIR}/src)
+        PRIVATE
+        ${GTEST_DIR}/include
+        ${PROJECT_SOURCE_DIR}/src
+        ${ETERNAL_DIR}/include)
     target_link_libraries(${TEST_TARGET}
         PRIVATE gtest_main pthread nlohmann_json::nlohmann_json)
     add_test(${TEST_NAME} ${TEST_TARGET})
@@ -26,6 +29,7 @@ create_test("exceptions_unittests" exceptions_unittests)
 
 add_executable(io_unittests
                ${CMAKE_CURRENT_SOURCE_DIR}/io/file_reader_unittest.cpp
+               ${CMAKE_CURRENT_SOURCE_DIR}/io/string_reader_unittest.cpp
                )
 
 create_test("io_unittests" io_unittests)
@@ -43,7 +47,7 @@ add_custom_command(
 
 add_executable(core_unittests
                ${CMAKE_CURRENT_SOURCE_DIR}/core/lexer_routines_unittest.cpp
-               ${CMAKE_CURRENT_SOURCE_DIR}/core/lexer_unittest.cpp
+               #${CMAKE_CURRENT_SOURCE_DIR}/core/lexer_unittest.cpp
                )
 
 create_test("core_unittests" core_unittests)

@@ -4,26 +4,26 @@
 namespace docgen {
 namespace core {
 
-template <class EnumType>
+template <class SymbolType>
 struct Token
 {
-    using value_type = EnumType;
+    using symbol_t = SymbolType;
 
-    Token(value_type name)
+    Token(symbol_t name)
         : name(name)
     {}
 
-    Token(value_type name, const std::string& content)
+    Token(symbol_t name, const std::string& content)
         : name(name)
         , content(content)
     {}
 
-    Token(value_type name, std::string&& content)
+    Token(symbol_t name, std::string&& content)
         : name(name)
         , content(std::move(content))
     {}
 
-    value_type name;
+    symbol_t name;
     std::string content;
 };
 

@@ -8,7 +8,7 @@ struct string_reader
 {
     string_reader(std::string&& str)
         : str_(std::move(str))
-        , end_(str.length())
+        , end_(str_.length())
     {}
 
     char read()

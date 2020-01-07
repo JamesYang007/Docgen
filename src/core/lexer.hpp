@@ -9,7 +9,7 @@ static constexpr size_t DEFAULT_TOKEN_ARR_SIZE = 50;
 struct Lexer
 {
     // token_t, status_t defined in lexer_routines.hpp
-    using value_type = typename token_t::value_type;
+    using symbol_t = typename token_t::symbol_t;
 
     Lexer(const char* filepath)
         : reader_(filepath)
@@ -19,13 +19,7 @@ struct Lexer
 
     void process()
     {
-        while (reader_.peek() != EOF) {
-            status_.tokens.emplace_back(core::process(reader_, status_));
-        }
-
-        if (status_.tokens[status_.tokens.size() - 1].name != value_type::eof) {
-            status_.tokens.emplace_back(value_type::eof);
-        }
+        core::process(reader_, status_);
     }
     
     const status_t::token_arr_t& get_tokens() const

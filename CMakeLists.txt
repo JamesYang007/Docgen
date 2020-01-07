@@ -49,6 +49,7 @@ message(STATUS "Compiling in ${CMAKE_BUILD_TYPE} mode")
 # Points to the root of Google Test
 set(GTEST_DIR ${PROJECT_SOURCE_DIR}/libs/benchmark/googletest/googletest)
 set(GBENCH_DIR ${PROJECT_SOURCE_DIR}/libs/benchmark)
+set(ETERNAL_DIR ${PROJECT_SOURCE_DIR}/libs/eternal)
 
 # find json library
 find_package(nlohmann_json 3.2.0 REQUIRED)
