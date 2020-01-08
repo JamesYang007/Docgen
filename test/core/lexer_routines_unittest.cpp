@@ -28,7 +28,8 @@ TEST_F(lexer_routines_fixture, read_until_file_newline)
 
     write_file(content);
     file_reader reader(filename);
-    std::string actual_str = read_until(reader, is_not<'\n'>);
+    std::string actual_str;
+    read_until(reader, is_not<'\n'>, actual_str);
     EXPECT_EQ(actual_str, expected_str);
 }
 
@@ -42,7 +43,8 @@ TEST_F(lexer_routines_fixture, read_until_file_two_newline)
 
     write_file(content);
     file_reader reader(filename);
-    std::string actual_str = read_until(reader, is_not<'\n'>);
+    std::string actual_str;
+    read_until(reader, is_not<'\n'>, actual_str);
     EXPECT_EQ(actual_str, expected_str);
 }
 
@@ -55,7 +57,8 @@ TEST_F(lexer_routines_fixture, read_until_string_newline)
         "very special comment ";
 
     string_reader reader(content);
-    std::string actual_str = read_until(reader, is_not<'@'>);
+    std::string actual_str;
+    read_until(reader, is_not<'@'>, actual_str);
     EXPECT_EQ(actual_str, expected_str);
 }
 
@@ -68,9 +71,12 @@ TEST_F(lexer_routines_fixture, read_until_string_two_newline)
         "very special ";
 
     string_reader reader(content);
-    std::string actual_str = read_until(reader, is_not<'@'>);
+    std::string actual_str;
+    read_until(reader, is_not<'@'>, actual_str);
     EXPECT_EQ(actual_str, expected_str);
 }
+
+// TODO: add process_tag_name, process_tag_info tests
 
 ////////////////////////////////////////////////////////////////////////
 // process_tags TESTS
@@ -219,21 +225,49 @@ TEST_F(lexer_routines_fixture, line_comment_multiple_tags_and_no_tag)
 // block_comment TESTS
 ////////////////////////////////////////////////////////////////////////
 
-//TEST_F(lexer_routines_fixture, block_comment)
-//{
-//    static constexpr const char* content =
-//        "very special comment  */"
-//        ;
-//    static constexpr const char* expected_str =
-//        "very special comment  ";
-//
-//    write_file(content);
-//    file_reader reader(filename);
-//    token_t token = block_comment(reader);
-//    check_token(token.name, DocSymbol::block_comment,
-//                token.content, expected_str);
-//}
-//
+TEST_F(lexer_routines_fixture, block_comment_end_comment)
+{
+    static constexpr const char* content =
+        "very special comment  */"
+        ;
+
+    write_file(content);
+    file_reader reader(filename);
+    status_t status;
+    block_comment(reader, status);
+    EXPECT_EQ(status.tokens.size(), static_cast<size_t>(0));
+}
+
+TEST_F(lexer_routines_fixture, block_comment_newline)
+{
+    static constexpr const char* content =
+        "very special comment  .\n"
+        ;
+
+    write_file(content);
+    file_reader reader(filename);
+    status_t status;
+    block_comment(reader, status);
+    EXPECT_EQ(status.tokens.size(), static_cast<size_t>(0));
+}
+
+TEST_F(lexer_routines_fixture, block_comment_tag)
+{
+    static constexpr const char* content =
+        "  very special comment  ."
+        "@desc description  . */ //more comment"
+        ;
+
+    write_file(content);
+    file_reader reader(filename);
+    status_t status;
+    block_comment(reader, status);
+    EXPECT_EQ(status.tokens.size(), static_cast<size_t>(2));
+
+    check_token(status.tokens[0].name, symbol_t::DESC,
+                status.tokens[1].content, "description  . ");
+}
+
 //TEST_F(lexer_routines_fixture, process_line_comment)
 //{
 //    static constexpr const char* content =

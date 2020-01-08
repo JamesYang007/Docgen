@@ -67,15 +67,41 @@ int ignore_until(Reader& reader, Termination func)
 
 // ignores read chars until func(c) false or reading terminates.
 template <class Reader, class Termination>
-std::string read_until(Reader& reader, Termination func)
+int read_until(Reader& reader, Termination func, std::string& line)
 {
     int c = 0;
-    std::string line;
     line.reserve(DEFAULT_STRING_RESERVE_SIZE);
     while (((c = reader.read()) != Reader::termination) && func(c)) {
         line.push_back(c);
     }
-    return line;
+    return c;
+}
+
+// remove preceeding and succeeding characters determined by
+// IgnorePreceeding and IgnoreSucceeding functors.
+template <class Reader, class IgnorePreceeding, class IgnoreSucceeding>
+void trim(Reader& reader, 
+          IgnorePreceeding ignore_preceeding,
+          IgnoreSucceeding ignore_succeeding,
+          std::string& line)
+{
+    // ignore leading whitespace except newline
+    int c = ignore_until(reader, ignore_preceeding);
+
+    // move back one char
+    reader.back(c); 
+
+    // current char is whitespace, necessarily reader termintated 
+    if (ignore_preceeding(c)) {
+        return; 
+    }
+
+    // read line until newline (non-inclusive)
+    read_until(reader, ignore_succeeding, line);
+
+    // ignore trailing whitespace
+    const auto end = line.find_last_not_of(" \t\n\v\f\r");
+    line.erase(end + 1, line.size() - end - 1);
 }
 
 // TODO: not entirely correct
@@ -106,10 +132,12 @@ std::string read_until(Reader& reader, Termination func)
 template <class Reader>
 inline void process_tag_name(Reader& reader, status_t& status)
 {
-    auto is_not_space = [](char x) {return x != ' ';};
+    static constexpr const auto 
+        is_not_space = [](char x) {return x != ' ';};
 
     // parse tag
-    std::string&& tagname = read_until(reader, is_not_space);
+    std::string tagname;
+    read_until(reader, is_not_space, tagname);
 
     // if valid tag, append token with tag name
     if (tag_map.contains(tagname.c_str())) {
@@ -132,7 +160,8 @@ inline void process_tag_name(Reader& reader, status_t& status)
 template <class Reader>
 inline void process_tag_info(Reader& reader, status_t& status)
 {
-    auto is_not_at = [](char x) {return x != '@';};
+    static constexpr const auto is_not_at = 
+        [](char x) {return x != '@';};
 
     // search for @ symbol
     // if no need to save initial portion of string before @ 
@@ -141,7 +170,8 @@ inline void process_tag_info(Reader& reader, status_t& status)
         return;
     }
 
-    std::string&& info = read_until(reader, is_not_at);
+    std::string info;
+    read_until(reader, is_not_at, info);
     // make a token only if info is nonempty
     if (!info.empty()) {
         status.tokens.emplace_back(token_t::symbol_t::TAGINFO, std::move(info));
@@ -173,49 +203,59 @@ inline void process_tags(Reader& reader, status_t& status)
     process_tags(reader, status);
 }
 
-template <class Reader>
-inline void line_comment(Reader& reader, status_t& status)
+template <class Reader, class IgnorePreceeding, class IgnoreSucceeding>
+inline void line_comment_trim(Reader& reader, status_t& status,
+                              IgnorePreceeding ignore_preceeding,
+                              IgnoreSucceeding ignore_succeeding)
 {
-    auto is_not_newline = [](char x) {return (x != '\n');};
-    auto is_space_not_newline = [](char x) {return isspace(x) && (x != '\n');};
-
-    // ignore leading whitespace except newline
-    int c = ignore_until(reader, is_space_not_newline);
-
-    // move back one char
-    reader.back(c); 
-
-    // current char is whitespace, do nothing
-    if (isspace(c)) {
-        return; 
-    }
-
-    // read line until newline (non-inclusive)
-    std::string&& line = read_until(reader, is_not_newline);
-
-    // ignore trailing whitespace
-    const auto end = line.find_last_not_of(" \t\n\v\f\r");
-    string_reader str_reader(line.substr(0, end + 1));
-
+    std::string trimmed;
+    trim(reader, ignore_preceeding, ignore_succeeding, trimmed);
+    string_reader str_reader(std::move(trimmed));
     // lex tags in current trimmed line
     process_tags(str_reader, status);
 }
 
-//inline token_t block_comment(file_reader& reader)
-//{
-//    std::string line;
-//    line.reserve(DEFAULT_STRING_RESERVE_SIZE);
-//    int c = 0;
-//
-//    while ((c = reader.read())) {
-//        if ((c == '*') && (reader.peek() == '/')) {
-//            break;
-//        }
-//        line.push_back(c);
-//    }
-//
-//    return token_t(token_t::symbol_t::block_comment, std::move(line));
-//}
+template <class Reader>
+inline void line_comment(Reader& reader, status_t& status)
+{
+    static constexpr const auto is_not_newline = 
+        [](char x) {return (x != '\n');};
+    static constexpr const auto is_space_not_newline = 
+        [](char x) {return isspace(x) && (x != '\n');};
+    line_comment_trim(reader, status, is_space_not_newline, is_not_newline);
+}
+
+template <class Reader>
+inline void block_comment(Reader& reader, status_t& status)
+{
+    bool prev_star = false;
+    static auto is_not_end_block = 
+        [&prev_star](char x) {
+            if (x == '*') {
+                prev_star = true;
+            }
+            if (prev_star && x == '/') {
+                prev_star = false;
+                return false;
+            }
+            else if (prev_star) {
+                prev_star = false;
+            }
+            return true;
+        };
+    static constexpr const auto is_not_newline =
+        [](char x) {return (x != '\n');};
+    static auto is_not_end_block_or_newline =
+        [](char x) {return is_not_end_block(x) && is_not_newline(x);};
+    static auto is_space_not_end_block_or_newline = 
+        [](char x) {return isspace(x) && is_not_end_block_or_newline(x);};
+
+    line_comment_trim(reader, status, 
+                      is_space_not_end_block_or_newline, 
+                      is_not_end_block_or_newline);
+    //read_until()
+    //return token_t(token_t::symbol_t::block_comment, std::move(line));
+}
 
 template <class Reader>
 inline void process(Reader& reader, status_t& status)
