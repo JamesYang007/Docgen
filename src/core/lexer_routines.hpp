@@ -3,8 +3,7 @@
 #include "io/file_reader.hpp"
 #include "io/string_reader.hpp"
 #include "status.hpp"
-#include <mapbox/eternal.hpp>
-
+#include "symbol.hpp"
 #include <iostream>
 
 namespace docgen {
@@ -20,34 +19,6 @@ enum class LexerContext {
     //FUNC_DECLARATION,
     //CLASS_DECLARATION
 };
-
-enum class Symbol {
-    END_OF_FILE,
-    // tag names
-    DESC,
-    SDESC,
-    TPARAM,
-    PARAM,
-    RETURN,
-    TYPE,
-    SECTION,
-    EXAMPLE,
-    // tag information
-    TAGINFO
-};
-
-// Compile-time mapping of strings to corresponding symbol
-MAPBOX_ETERNAL_CONSTEXPR const auto tag_map = 
-    mapbox::eternal::map<mapbox::eternal::string, Symbol>({
-            {"desc", Symbol::DESC},
-            {"sdesc", Symbol::SDESC},
-            {"tparam", Symbol::TPARAM},
-            {"param", Symbol::PARAM},
-            {"return", Symbol::RETURN},
-            {"type", Symbol::TYPE},
-            {"section", Symbol::SECTION},
-            {"example", Symbol::EXAMPLE}
-    });
 
 using file_reader = io::file_reader;
 using string_reader = io::string_reader;
