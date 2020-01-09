@@ -29,9 +29,9 @@ static MAPBOX_ETERNAL_CONSTEXPR const auto symbol_map =
             {Symbol::SEMICOLON, ";"},
             {Symbol::OPEN_BRACE, "{"},
             {Symbol::CLOSE_BRACE, "}"},
-            {Symbol::BEGIN_LINE_COMMENT, "/// "},
+            {Symbol::BEGIN_LINE_COMMENT, "///"},
             {Symbol::END_LINE_COMMENT, "\n"},
-            {Symbol::BEGIN_BLOCK_COMMENT, "/*! "},
+            {Symbol::BEGIN_BLOCK_COMMENT, "/*!"},
             {Symbol::END_BLOCK_COMMENT, "*/"},
     });
  
