@@ -5,31 +5,34 @@ namespace docgen {
 namespace core {
 
 enum class Symbol {
+    // single-char tokens
     END_OF_FILE,
-    // tag names
-    DESC,
-    SDESC,
-    TPARAM,
-    PARAM,
-    RETURN,
-    TYPE,
-    SECTION,
-    EXAMPLE,
-    // tag information
-    TAGINFO
+    NEWLINE,
+    SEMICOLON,
+    OPEN_BRACE,
+    CLOSE_BRACE,
+    // string tokens
+    BEGIN_LINE_COMMENT,
+    END_LINE_COMMENT = NEWLINE,   // may not be used
+    BEGIN_BLOCK_COMMENT,
+    END_BLOCK_COMMENT,
+    // special tags
+    TAGNAME,
+    // default
+    TEXT
 };
 
 // Compile-time mapping of strings to corresponding symbol
-MAPBOX_ETERNAL_CONSTEXPR const auto tag_map = 
+static MAPBOX_ETERNAL_CONSTEXPR const auto symbol_map = 
     mapbox::eternal::map<Symbol, mapbox::eternal::string>({
-            {Symbol::DESC, "desc"},
-            {Symbol::SDESC, "sdesc"},
-            {Symbol::TPARAM, "tparam"},
-            {Symbol::PARAM, "param"},
-            {Symbol::RETURN, "return"},
-            {Symbol::TYPE, "type"},
-            {Symbol::SECTION, "section"},
-            {Symbol::EXAMPLE, "example"}
+            {Symbol::NEWLINE, "\n"},
+            {Symbol::SEMICOLON, ";"},
+            {Symbol::OPEN_BRACE, "{"},
+            {Symbol::CLOSE_BRACE, "}"},
+            {Symbol::BEGIN_LINE_COMMENT, "/// "},
+            {Symbol::END_LINE_COMMENT, "\n"},
+            {Symbol::BEGIN_BLOCK_COMMENT, "/*! "},
+            {Symbol::END_BLOCK_COMMENT, "*/"},
     });
  
 } // namespace core
