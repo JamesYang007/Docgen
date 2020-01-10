@@ -11,5 +11,10 @@ git submodule update --remote
 git clone https://github.com/google/googletest.git libs/benchmark/googletest
 cd libs/benchmark
 mkdir -p build && cd build
-cmake ../ -GNinja
+
+if [ $(command -v ninja) != "" ]; then
+    cmake ../ -GNinja
+else
+    cmake ../
+fi
 cmake --build . -- -j12

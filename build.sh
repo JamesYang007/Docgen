@@ -28,5 +28,11 @@ else
 fi
 
 rm -rf ./*
-cmake ../../ -GNinja "$@"
+
+if [ $(command -v ninja) != "" ]; then
+    cmake ../../ -GNinja "$@"
+else
+    cmake ../../ "$@"
+fi
+
 cmake --build . -- -j12
