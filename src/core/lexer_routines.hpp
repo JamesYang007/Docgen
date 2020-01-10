@@ -112,8 +112,8 @@ inline bool process_char(int c, std::string& text, status_t& status)
 // It is expected that the caller immediately read "@" before calling.
 inline void tokenize_tag_name(file_reader& reader, status_t& status)
 {
-    static constexpr const auto 
-        is_alpha = [](char x) {return isalpha(x);};
+    static constexpr const auto is_alpha = 
+        [](char x) {return isalpha(x);};
 
     // parse tag
     std::string tagname;
@@ -125,9 +125,9 @@ inline void tokenize_tag_name(file_reader& reader, status_t& status)
         status.tokens.emplace_back(symbol_t::TAGNAME, std::move(tagname));
     }
 
-    // otherwise, assume TEXT 
+    // otherwise, assume TEXT: tokenize "@" as TEXT first then tagname as a separate tag
     else {
-        tagname.insert(0, "@");
+        status.tokens.emplace_back(symbol_t::TEXT, "@");
         status.tokens.emplace_back(symbol_t::TEXT, std::move(tagname));
     }
 }
@@ -153,12 +153,10 @@ inline void process_line_comment(std::string& text, file_reader& reader, status_
 
     if (c == '/') {
         c = reader.read();
-
         if (isspace(c)) {
             tokenize_text(text, status);
             status.tokens.emplace_back(symbol_t::BEGIN_LINE_COMMENT);
         }
-
         else {
             // no need to read back since c cannot be a whitespace and we ignore anyway
             ignore_until(reader, is_not_newline);
@@ -181,13 +179,11 @@ inline void process_block_comment(std::string& text, file_reader& reader, status
 
     if (c == '!') {
         c = reader.read();
-
         // valid block comment: tokenize text then begin block comment symbol
         if (isspace(c)) {
             tokenize_text(text, status);
             status.tokens.emplace_back(symbol_t::BEGIN_BLOCK_COMMENT);
         }
-
         // regular block comment: ignore text until end and stop tokenizing
         else {
             ignore_until(reader, is_not_end_block);
@@ -213,38 +209,31 @@ inline bool process_string(int c, std::string& text,
     // possibly beginning of line or block comment
     if (c == '/') {
         c = reader.read();
-
         if (c == '/') {
             process_line_comment(text, reader, status);
         }
-
         else if (c == '*') {
             process_block_comment(text, reader, status);
         }
-        
         else {
             text.push_back('/');
             text.push_back(c);
         }
-
         return true;
     }
 
-    // possibly ending block comment or a star that can be ignored
+    // possibly ending block comment or a star that can be ignored in the middle of a block comment
     else if (c == '*') {
         c = reader.read();
-
         if (c == '/') {
             tokenize_text(text, status);
             status.tokens.emplace_back(symbol_t::END_BLOCK_COMMENT);
         }
-
         else {
             tokenize_text(text, status);
             status.tokens.emplace_back(symbol_t::STAR);
             reader.back(c);
         }
-
         return true;
     }
 

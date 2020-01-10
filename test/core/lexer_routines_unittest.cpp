@@ -427,9 +427,11 @@ TEST_F(lexer_routines_fixture, tokenize_tag_name_invalid)
     status_t status;    // context is none
     tokenize_tag_name(reader, status);
 
-    EXPECT_EQ(status.tokens.size(), static_cast<size_t>(1));
+    EXPECT_EQ(status.tokens.size(), static_cast<size_t>(2));
     check_token(status.tokens[0].name, symbol_t::TEXT,
-                status.tokens[0].content, "@tparram");
+                status.tokens[0].content, "@");
+    check_token(status.tokens[1].name, symbol_t::TEXT,
+                status.tokens[1].content, "tparram");
     EXPECT_EQ(reader.peek(), '\n');
 }
 
