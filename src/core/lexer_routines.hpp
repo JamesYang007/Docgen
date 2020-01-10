@@ -1,268 +1,285 @@
 #pragma once
 #include "token.hpp"
-#include "io/file_reader.hpp"
-#include "io/string_reader.hpp"
 #include "status.hpp"
 #include "symbol.hpp"
+#include "io/file_reader.hpp"
+#include "io/string_reader.hpp"
+#include "tag_set.hpp"
 #include <iostream>
 
 namespace docgen {
 namespace core {
 
-static constexpr size_t DEFAULT_STRING_RESERVE_SIZE = 20;
-
-enum class LexerContext {
-    NONE, 
-    BEGIN_DECL
-    //LINE_COMMENT,
-    //BLOCK_COMMENT,
-    //FUNC_DECLARATION,
-    //CLASS_DECLARATION
-};
+static constexpr size_t DEFAULT_STRING_RESERVE_SIZE = 50;
 
 using file_reader = io::file_reader;
 using string_reader = io::string_reader;
-using token_t = Token<Symbol>;
-using context_t = LexerContext;
-using status_t = Status<token_t, context_t>;
+using symbol_t = Symbol;
+using token_t = Token<symbol_t>;
+using status_t = Status<token_t>;
 
-// ignores read chars until func(c) false or reading terminates.
-// returns the last char read that terminated the function
-template <class Reader, class Termination>
-int ignore_until(Reader& reader, Termination func)
+// Reads and ignores chars until func(c) evaluates to false or reading terminates,
+// where c is the current char read.
+// Returns the last char read that terminated the function.
+template <class Termination>
+int ignore_until(file_reader& reader, Termination func)
 {
     int c = 0;
-    while (((c = reader.read()) != Reader::termination) && func(c));
+    while (((c = reader.read()) != file_reader::termination) && func(c));
     return c;
 }
 
-// ignores read chars until func(c) false or reading terminates.
-template <class Reader, class Termination>
-int read_until(Reader& reader, Termination func, std::string& line)
+// Reads and stores chars until func(c) evaluates to false or reading terminates,
+// where c is the current char read.
+// Returns the last char read that terminated the function.
+template <class Termination>
+int read_until(file_reader& reader, Termination func, std::string& line)
 {
     int c = 0;
     line.reserve(DEFAULT_STRING_RESERVE_SIZE);
-    while (((c = reader.read()) != Reader::termination) && func(c)) {
+    while (((c = reader.read()) != file_reader::termination) && func(c)) {
         line.push_back(c);
     }
     return c;
 }
 
-// remove preceeding and succeeding characters determined by
-// IgnorePreceeding and IgnoreSucceeding functors.
-template <class Reader, class IgnorePreceeding, class IgnoreSucceeding>
-void trim(Reader& reader, 
-          IgnorePreceeding ignore_preceeding,
-          IgnoreSucceeding ignore_succeeding,
-          std::string& line)
+// Trims all leading and trailing whitespaces (one of " \t\n\v\f\r") from line.
+// Line is directly modified.
+void trim(std::string& line)
 {
-    // ignore leading whitespace except newline
-    int c = ignore_until(reader, ignore_preceeding);
+    static constexpr const char* whitespaces = " \t\n\v\f\r";
 
-    // move back one char
-    reader.back(c); 
+    // find first non-whitespace
+    const auto begin = line.find_first_not_of(whitespaces);
 
-    // current char is whitespace, necessarily reader termintated 
-    if (ignore_preceeding(c)) {
-        return; 
+    // find last non-whitespace
+    const auto end = line.find_last_not_of(whitespaces);
+
+    // If substring invalid, simply clear line
+    if (begin == std::string::npos || end == std::string::npos) {
+        line.clear();
+        return;
     }
 
-    // read line until newline (non-inclusive)
-    read_until(reader, ignore_succeeding, line);
-
-    // ignore trailing whitespace
-    const auto end = line.find_last_not_of(" \t\n\v\f\r");
-    line.erase(end + 1, line.size() - end - 1);
+    // otherwise, replace with substring
+    line = line.substr(begin, end - begin + 1);
 }
 
-// TODO: not entirely correct
-//inline token_t declaration(file_reader& reader)
-//{
-//    std::string line;
-//    line.reserve(DEFAULT_STRING_RESERVE_SIZE);
-//    char c = 0;
-//
-//    while ((c = reader.read()) && 
-//           ((c != ';') || (c != '{'))) {
-//        line.push_back(c);
-//    }
-//
-//    // class declaration
-//    if ((line.find("class") != std::string::npos) ||
-//        (line.find("struct") != std::string::npos))
-//    {
-//        return token_t(token_t::symbol_t::class_declaration, std::move(line)); 
-//    }
-//
-//    // function declaration
-//    return token_t(token_t::symbol_t::func_declaration, std::move(line));
-//}
+// Trims text, tokenizes it, clears it, and reserve DEFAULT_STRING_RESERVE_SIZE.
+inline void tokenize_text(std::string& text, status_t& status)
+{
+    // trim whitespaces from text first
+    trim(text);
+    // tokenize current TEXT only if it is non-empty
+    if (!text.empty()) {
+        status.tokens.emplace_back(symbol_t::TEXT, std::move(text));
+    }
+    // clear and reserve 
+    text.clear();
+    text.reserve(DEFAULT_STRING_RESERVE_SIZE); 
+}
 
-// If tag name is not a valid one and there exists a previous tag, 
-// we assume current "tag name" is part of previous tag information.
-template <class Reader>
-inline void process_tag_name(Reader& reader, status_t& status)
+// If c is one of single-char special tokens (see symbol.hpp),
+// then text is tokenized and the single-char special token is tokenized afterwards.
+// The tokens are appended to status.tokens.
+// Otherwise, no operations are performed.
+// Returns true if and only if a single-char special token created.
+inline bool process_char(int c, std::string& text, status_t& status)
+{
+    switch (c) {
+        case '\n':
+            tokenize_text(text, status);
+            status.tokens.emplace_back(symbol_t::NEWLINE);
+            return true;
+        case ';':
+            tokenize_text(text, status);
+            status.tokens.emplace_back(symbol_t::SEMICOLON);
+            return true;
+        case '{':
+            tokenize_text(text, status);
+            status.tokens.emplace_back(symbol_t::OPEN_BRACE);
+            return true;
+        case '}':
+            tokenize_text(text, status);
+            status.tokens.emplace_back(symbol_t::CLOSE_BRACE);
+            return true;
+        default:
+            return false;
+    }
+}
+
+// If tag name is not a valid one, assume it is simply text.
+// It is expected that the caller immediately read "@" before calling.
+inline void tokenize_tag_name(file_reader& reader, status_t& status)
 {
     static constexpr const auto 
-        is_not_space = [](char x) {return x != ' ';};
+        is_alpha = [](char x) {return isalpha(x);};
 
     // parse tag
     std::string tagname;
-    read_until(reader, is_not_space, tagname);
+    int c = read_until(reader, is_alpha, tagname);
+    reader.back(c);
 
     // if valid tag, append token with tag name
-    if (tag_map.contains(tagname.c_str())) {
-        // Note: this also signifies the beginning of some declaration to document
-        // if context has not been set yet.
-        if (status.context == context_t::NONE) {
-            status.context = context_t::BEGIN_DECL;
-        }
-        status.tokens.emplace_back(tag_map.at(tagname.c_str()), std::move(tagname));
+    if (tag_set.find(tagname) != tag_set.end()) {
+        status.tokens.emplace_back(symbol_t::TAGNAME, std::move(tagname));
     }
 
-    // otherwise, assume part of previous tag's info only if context is in some declaration
-    else if (status.context == context_t::BEGIN_DECL){
+    // otherwise, assume TEXT 
+    else {
         tagname.insert(0, "@");
-        tagname.push_back(' ');
-        status.tokens.emplace_back(token_t::symbol_t::TAGINFO, std::move(tagname));
+        status.tokens.emplace_back(symbol_t::TEXT, std::move(tagname));
     }
 }
 
-template <class Reader>
-inline void process_tag_info(Reader& reader, status_t& status)
+inline bool process_tag_name(int c, std::string& text, 
+                             file_reader& reader, status_t& status)
 {
-    static constexpr const auto is_not_at = 
-        [](char x) {return x != '@';};
-
-    // search for @ symbol
-    // if no need to save initial portion of string before @ 
-    if (status.context == status_t::context_t::NONE) {
-        ignore_until(reader, is_not_at);
-        return;
+    if (c == '@') {
+        tokenize_text(text, status);
+        tokenize_tag_name(reader, status);
+        return true;
     }
-
-    std::string info;
-    read_until(reader, is_not_at, info);
-    // make a token only if info is nonempty
-    if (!info.empty()) {
-        status.tokens.emplace_back(token_t::symbol_t::TAGINFO, std::move(info));
-    }
+    return false;
 }
 
-// reader should read a string that has been trimmed, i.e.,
-// preceeding and succeeding whitespaces have been removed.
-template <class Reader>
-inline void process_tags(Reader& reader, status_t& status)
+// It is expected that caller has read the string "//" immediately before calling.
+inline void process_line_comment(std::string& text, file_reader& reader, status_t& status)
 {
-    // process (possibly trailing) tag information 
-    process_tag_info(reader, status);
-
-    // if terminated, no need to read further
-    if (reader.peek() == Reader::termination) {
-        return;
-    }
-
-    // process tag name
-    process_tag_name(reader, status);
-
-    // if terminated, no need to read further
-    if (reader.peek() == Reader::termination) {
-        return;
-    }
-
-    // recurse to process tags in rest of the line
-    process_tags(reader, status);
-}
-
-template <class Reader, class IgnorePreceeding, class IgnoreSucceeding>
-inline void line_comment_trim(Reader& reader, status_t& status,
-                              IgnorePreceeding ignore_preceeding,
-                              IgnoreSucceeding ignore_succeeding)
-{
-    std::string trimmed;
-    trim(reader, ignore_preceeding, ignore_succeeding, trimmed);
-    string_reader str_reader(std::move(trimmed));
-    // lex tags in current trimmed line
-    process_tags(str_reader, status);
-}
-
-template <class Reader>
-inline void line_comment(Reader& reader, status_t& status)
-{
-    static constexpr const auto is_not_newline = 
-        [](char x) {return (x != '\n');};
-    static constexpr const auto is_space_not_newline = 
-        [](char x) {return isspace(x) && (x != '\n');};
-    line_comment_trim(reader, status, is_space_not_newline, is_not_newline);
-}
-
-template <class Reader>
-inline void block_comment(Reader& reader, status_t& status)
-{
-    bool prev_star = false;
-    static auto is_not_end_block = 
-        [&prev_star](char x) {
-            if (x == '*') {
-                prev_star = true;
-            }
-            if (prev_star && x == '/') {
-                prev_star = false;
-                return false;
-            }
-            else if (prev_star) {
-                prev_star = false;
-            }
-            return true;
-        };
     static constexpr const auto is_not_newline =
-        [](char x) {return (x != '\n');};
-    static auto is_not_end_block_or_newline =
-        [](char x) {return is_not_end_block(x) && is_not_newline(x);};
-    static auto is_space_not_end_block_or_newline = 
-        [](char x) {return isspace(x) && is_not_end_block_or_newline(x);};
+        [](char x) {return x != '\n';};
 
-    line_comment_trim(reader, status, 
-                      is_space_not_end_block_or_newline, 
-                      is_not_end_block_or_newline);
-    //read_until()
-    //return token_t(token_t::symbol_t::block_comment, std::move(line));
+    int c = reader.read();
+
+    if (c == '/') {
+        c = reader.read();
+
+        if (isspace(c)) {
+            tokenize_text(text, status);
+            status.tokens.emplace_back(symbol_t::BEGIN_LINE_COMMENT);
+        }
+
+        else {
+            // no need to read back since c cannot be a whitespace and we ignore anyway
+            ignore_until(reader, is_not_newline);
+        }
+    }
+
+    else {
+        reader.back(c); // the character just read may be '\n'
+        ignore_until(reader, is_not_newline);
+    }
 }
 
-template <class Reader>
-inline void process(Reader& reader, status_t& status)
+// It is expected that caller has read the string "/*" immediately before calling.
+inline void process_block_comment(std::string& text, file_reader& reader, status_t& status)
 {
-    // 1 if last symbol was declaration, 0 otherwise
-    // set to -1 by default in the beginning.
-    // static int last_sym_decl = -1; 
-    int c = 0;
+    const auto is_not_end_block =
+        [&](char x) {return (x != '*') || (reader.peek() != '/');};
 
-    while ((c = reader.read()) != Reader::termination) {
+    int c = reader.read();
+
+    if (c == '!') {
+        c = reader.read();
+
+        // valid block comment: tokenize text then begin block comment symbol
+        if (isspace(c)) {
+            tokenize_text(text, status);
+            status.tokens.emplace_back(symbol_t::BEGIN_BLOCK_COMMENT);
+        }
+
+        // regular block comment: ignore text until end and stop tokenizing
+        else {
+            ignore_until(reader, is_not_end_block);
+            reader.read(); // read the '/'
+        }
+    }
+
+    // regular block comment
+    else {
+        ignore_until(reader, is_not_end_block);
+        reader.read(); // read the '/'
+    }
+}
+
+// If c is not '/', then no operation done and returns false.
+// Otherwise, if it's a valid line comment ("/// ") then same as process_line_comment.
+// If it's a valid block comment ("/*! ") then same as process_block_comment.
+// Otherwise, text is updated to include all characters read.
+// In any case, returns true since first char has been processed.
+inline bool process_string(int c, std::string& text,
+                           file_reader& reader, status_t& status)
+{
+    // possibly beginning of line or block comment
+    if (c == '/') {
+        c = reader.read();
 
         if (c == '/') {
-            c = reader.read();
-            if (c == '/') {
-                c = reader.read();
-                if (c == '/') {
-                    line_comment(reader, status);
-                }
-            }
-
-            // TODO: block comment
-            //else if (c == '*') {
-            //    c = reader.read();
-            //    if (c == '!') {
-            //        return block_comment(reader, status);
-            //    }
-            //}
+            process_line_comment(text, reader, status);
         }
 
-        // TODO: declaration
-        //// if last symbol were a comment and
-        //// c is alpha, assume it is the beginning of a declaration
-        //if (last_sym_decl == 0 && std::isalpha(c)) {
-        //    last_sym_decl = 1; 
-        //    return declaration(reader); 
-        //}
+        else if (c == '*') {
+            process_block_comment(text, reader, status);
+        }
+        
+        else {
+            text.push_back('/');
+            text.push_back(c);
+        }
+
+        return true;
+    }
+
+    // possibly ending block comment or a star that can be ignored
+    else if (c == '*') {
+        c = reader.read();
+
+        if (c == '/') {
+            tokenize_text(text, status);
+            status.tokens.emplace_back(symbol_t::END_BLOCK_COMMENT);
+        }
+
+        else {
+            tokenize_text(text, status);
+            status.tokens.emplace_back(symbol_t::STAR);
+            reader.back(c);
+        }
+
+        return true;
+    }
+
+    return false;
+}
+
+inline void process(file_reader& reader, status_t& status)
+{
+    std::string text;
+    text.reserve(DEFAULT_STRING_RESERVE_SIZE);
+    int c = 0;
+    bool processed = false;
+
+    while ((c = reader.read()) != file_reader::termination) {
+
+        // process special single-char
+        processed = process_char(c, text, status);
+        if (processed) {
+            continue;
+        }
+
+        // process tag name
+        processed = process_tag_name(c, text, reader, status);
+        if (processed) {
+            continue;
+        }
+
+        // process string tokens
+        processed = process_string(c, text, reader, status);
+        if (processed) {
+            continue;
+        }
+
+        // otherwise, no special symbol -> push to text
+        text.push_back(c);
     }
 
     status.tokens.emplace_back(token_t::symbol_t::END_OF_FILE);
