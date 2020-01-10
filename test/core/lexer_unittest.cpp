@@ -23,10 +23,18 @@ TEST_F(lexer_fixture, process_no_comment)
     lexer.process();
     const auto& tokens = lexer.get_tokens();
 
-    EXPECT_EQ(tokens.size(), static_cast<size_t>(1));
+    EXPECT_EQ(tokens.size(), static_cast<size_t>(5));
 
-    check_token(tokens[0].name, DocSymbol::eof,
-                tokens[0].content, "");
+    check_token(tokens[0].name, symbol_t::TEXT,
+                tokens[0].content, "#include <gtest/gtest.h>");
+    check_token(tokens[1].name, symbol_t::NEWLINE,
+                tokens[1].content, "");
+    check_token(tokens[2].name, symbol_t::NEWLINE,
+                tokens[2].content, "");
+    check_token(tokens[3].name, symbol_t::NEWLINE,
+                tokens[3].content, "");
+    check_token(tokens[4].name, symbol_t::END_OF_FILE,
+                tokens[4].content, "");
 }
 
 TEST_F(lexer_fixture, process_one_line_comment)
@@ -38,21 +46,30 @@ TEST_F(lexer_fixture, process_one_line_comment)
         "   /// a very special comment   \n"
         "\n"
         ;
-    static constexpr const char* expected_str =
-        " a very special comment   ";
 
     write_file(content);
     Lexer lexer(filename);
     lexer.process();
     const auto& tokens = lexer.get_tokens();
 
-    EXPECT_EQ(tokens.size(), static_cast<size_t>(2));
+    EXPECT_EQ(tokens.size(), static_cast<size_t>(8));
 
-    check_token(tokens[0].name, DocSymbol::line_comment,
-                tokens[0].content, expected_str);
-
-    check_token(tokens[1].name, DocSymbol::eof,
+    check_token(tokens[0].name, symbol_t::TEXT,
+                tokens[0].content, "#include <gtest/gtest.h>");
+    check_token(tokens[1].name, symbol_t::NEWLINE,
                 tokens[1].content, "");
+    check_token(tokens[2].name, symbol_t::NEWLINE,
+                tokens[2].content, "");
+    check_token(tokens[3].name, symbol_t::BEGIN_LINE_COMMENT,
+                tokens[3].content, "");
+    check_token(tokens[4].name, symbol_t::TEXT,
+                tokens[4].content, "a very special comment");
+    check_token(tokens[5].name, symbol_t::NEWLINE,
+                tokens[5].content, "");
+    check_token(tokens[6].name, symbol_t::NEWLINE,
+                tokens[6].content, "");
+    check_token(tokens[7].name, symbol_t::END_OF_FILE,
+                tokens[7].content, "");
 }
 
 TEST_F(lexer_fixture, process_two_line_comment)
@@ -67,26 +84,36 @@ TEST_F(lexer_fixture, process_two_line_comment)
         "   /// another very special comment   \n"
         "  // just a normal comment\n"
         ;
-    static constexpr const char* expected_str_1 =
-        " a very special comment   ";
-    static constexpr const char* expected_str_2 =
-        " another very special comment   ";
 
     write_file(content);
     Lexer lexer(filename);
     lexer.process();
     const auto& tokens = lexer.get_tokens();
 
-    EXPECT_EQ(tokens.size(), static_cast<size_t>(3));
+    EXPECT_EQ(tokens.size(), static_cast<size_t>(11));
 
-    check_token(tokens[0].name, DocSymbol::line_comment,
-                tokens[0].content, expected_str_1);
-
-    check_token(tokens[1].name, DocSymbol::line_comment,
-                tokens[1].content, expected_str_2);
-
-    check_token(tokens[2].name, DocSymbol::eof,
+    check_token(tokens[0].name, symbol_t::TEXT,
+                tokens[0].content, "#include <gtest/gtest.h>");
+    check_token(tokens[1].name, symbol_t::NEWLINE,
+                tokens[1].content, "");
+    check_token(tokens[2].name, symbol_t::NEWLINE,
                 tokens[2].content, "");
+    check_token(tokens[3].name, symbol_t::BEGIN_LINE_COMMENT,
+                tokens[3].content, "");
+    check_token(tokens[4].name, symbol_t::TEXT,
+                tokens[4].content, "a very special comment");
+    check_token(tokens[5].name, symbol_t::NEWLINE,
+                tokens[5].content, "");
+    check_token(tokens[6].name, symbol_t::NEWLINE,
+                tokens[6].content, "");
+    check_token(tokens[7].name, symbol_t::BEGIN_LINE_COMMENT,
+                tokens[7].content, "");
+    check_token(tokens[8].name, symbol_t::TEXT,
+                tokens[8].content, "another very special comment");
+    check_token(tokens[9].name, symbol_t::NEWLINE,
+                tokens[9].content, "");
+    check_token(tokens[10].name, symbol_t::END_OF_FILE,
+                tokens[10].content, "");
 }
 
 TEST_F(lexer_fixture, process_one_block_comment)
@@ -98,21 +125,32 @@ TEST_F(lexer_fixture, process_one_block_comment)
         "   /*! a very special comment   */\n"
         "\n"
         ;
-    static constexpr const char* expected_str =
-        " a very special comment   ";
 
     write_file(content);
     Lexer lexer(filename);
     lexer.process();
     const auto& tokens = lexer.get_tokens();
 
-    EXPECT_EQ(tokens.size(), static_cast<size_t>(2));
+    EXPECT_EQ(tokens.size(), static_cast<size_t>(9));
 
-    check_token(tokens[0].name, DocSymbol::block_comment,
-                tokens[0].content, expected_str);
-
-    check_token(tokens[1].name, DocSymbol::eof,
+    check_token(tokens[0].name, symbol_t::TEXT,
+                tokens[0].content, "#include <gtest/gtest.h>");
+    check_token(tokens[1].name, symbol_t::NEWLINE,
                 tokens[1].content, "");
+    check_token(tokens[2].name, symbol_t::NEWLINE,
+                tokens[2].content, "");
+    check_token(tokens[3].name, symbol_t::BEGIN_BLOCK_COMMENT,
+                tokens[3].content, "");
+    check_token(tokens[4].name, symbol_t::TEXT,
+                tokens[4].content, "a very special comment");
+    check_token(tokens[5].name, symbol_t::END_BLOCK_COMMENT,
+                tokens[5].content, "");
+    check_token(tokens[6].name, symbol_t::NEWLINE,
+                tokens[6].content, "");
+    check_token(tokens[7].name, symbol_t::NEWLINE,
+                tokens[7].content, "");
+    check_token(tokens[8].name, symbol_t::END_OF_FILE,
+                tokens[8].content, "");
 }
 
 TEST_F(lexer_fixture, process_two_block_comment)
@@ -129,26 +167,46 @@ TEST_F(lexer_fixture, process_two_block_comment)
         "*/"
         "  /* just a normal comment\n */"
         ;
-    static constexpr const char* expected_str_1 =
-        " a very special comment   ";
-    static constexpr const char* expected_str_2 =
-        " another very \n    * special comment   \n";
 
     write_file(content);
     Lexer lexer(filename);
     lexer.process();
     const auto& tokens = lexer.get_tokens();
 
-    EXPECT_EQ(tokens.size(), static_cast<size_t>(3));
+    EXPECT_EQ(tokens.size(), static_cast<size_t>(16));
 
-    check_token(tokens[0].name, DocSymbol::block_comment,
-                tokens[0].content, expected_str_1);
-
-    check_token(tokens[1].name, DocSymbol::block_comment,
-                tokens[1].content, expected_str_2);
-
-    check_token(tokens[2].name, DocSymbol::eof,
+    check_token(tokens[0].name, symbol_t::TEXT,
+                tokens[0].content, "#include <gtest/gtest.h>");
+    check_token(tokens[1].name, symbol_t::NEWLINE,
+                tokens[1].content, "");
+    check_token(tokens[2].name, symbol_t::NEWLINE,
                 tokens[2].content, "");
+    check_token(tokens[3].name, symbol_t::BEGIN_BLOCK_COMMENT,
+                tokens[3].content, "");
+    check_token(tokens[4].name, symbol_t::TEXT,
+                tokens[4].content, "a very special comment");
+    check_token(tokens[5].name, symbol_t::END_BLOCK_COMMENT,
+                tokens[5].content, "");
+    check_token(tokens[6].name, symbol_t::NEWLINE,
+                tokens[6].content, "");
+    check_token(tokens[7].name, symbol_t::NEWLINE,
+                tokens[7].content, "");
+    check_token(tokens[8].name, symbol_t::BEGIN_BLOCK_COMMENT,
+                tokens[8].content, "");
+    check_token(tokens[9].name, symbol_t::TEXT,
+                tokens[9].content, "another very");
+    check_token(tokens[10].name, symbol_t::NEWLINE,
+                tokens[10].content, "");
+    check_token(tokens[11].name, symbol_t::STAR,
+                tokens[11].content, "");
+    check_token(tokens[12].name, symbol_t::TEXT,
+                tokens[12].content, "special comment");
+    check_token(tokens[13].name, symbol_t::NEWLINE,
+                tokens[13].content, "");
+    check_token(tokens[14].name, symbol_t::END_BLOCK_COMMENT,
+                tokens[14].content, "");
+    check_token(tokens[15].name, symbol_t::END_OF_FILE,
+                tokens[15].content, "");
 }
 
 TEST_F(lexer_fixture, process_line_block_comment)
@@ -165,26 +223,46 @@ TEST_F(lexer_fixture, process_line_block_comment)
         "*/"
         "  /* just a normal comment\n */"
         ;
-    static constexpr const char* expected_str_1 =
-        " a very special comment   */";
-    static constexpr const char* expected_str_2 =
-        " another very \n    * special comment   \n";
 
     write_file(content);
     Lexer lexer(filename);
     lexer.process();
     const auto& tokens = lexer.get_tokens();
 
-    EXPECT_EQ(tokens.size(), static_cast<size_t>(3));
+    EXPECT_EQ(tokens.size(), static_cast<size_t>(16));
 
-    check_token(tokens[0].name, DocSymbol::line_comment,
-                tokens[0].content, expected_str_1);
-
-    check_token(tokens[1].name, DocSymbol::block_comment,
-                tokens[1].content, expected_str_2);
-
-    check_token(tokens[2].name, DocSymbol::eof,
+    check_token(tokens[0].name, symbol_t::TEXT,
+                tokens[0].content, "#include <gtest/gtest.h>");
+    check_token(tokens[1].name, symbol_t::NEWLINE,
+                tokens[1].content, "");
+    check_token(tokens[2].name, symbol_t::NEWLINE,
                 tokens[2].content, "");
+    check_token(tokens[3].name, symbol_t::BEGIN_LINE_COMMENT,
+                tokens[3].content, "");
+    check_token(tokens[4].name, symbol_t::TEXT,
+                tokens[4].content, "a very special comment");
+    check_token(tokens[5].name, symbol_t::END_BLOCK_COMMENT,
+                tokens[5].content, "");
+    check_token(tokens[6].name, symbol_t::NEWLINE,
+                tokens[6].content, "");
+    check_token(tokens[7].name, symbol_t::NEWLINE,
+                tokens[7].content, "");
+    check_token(tokens[8].name, symbol_t::BEGIN_BLOCK_COMMENT,
+                tokens[8].content, "");
+    check_token(tokens[9].name, symbol_t::TEXT,
+                tokens[9].content, "another very");
+    check_token(tokens[10].name, symbol_t::NEWLINE,
+                tokens[10].content, "");
+    check_token(tokens[11].name, symbol_t::STAR,
+                tokens[11].content, "");
+    check_token(tokens[12].name, symbol_t::TEXT,
+                tokens[12].content, "special comment");
+    check_token(tokens[13].name, symbol_t::NEWLINE,
+                tokens[13].content, "");
+    check_token(tokens[14].name, symbol_t::END_BLOCK_COMMENT,
+                tokens[14].content, "");
+    check_token(tokens[15].name, symbol_t::END_OF_FILE,
+                tokens[15].content, "");
 }
 
 } // namespace core

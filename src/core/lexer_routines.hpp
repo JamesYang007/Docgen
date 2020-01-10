@@ -22,7 +22,7 @@ using status_t = Status<token_t>;
 // where c is the current char read.
 // Returns the last char read that terminated the function.
 template <class Termination>
-int ignore_until(file_reader& reader, Termination func)
+inline int ignore_until(file_reader& reader, Termination func)
 {
     int c = 0;
     while (((c = reader.read()) != file_reader::termination) && func(c));
@@ -33,7 +33,7 @@ int ignore_until(file_reader& reader, Termination func)
 // where c is the current char read.
 // Returns the last char read that terminated the function.
 template <class Termination>
-int read_until(file_reader& reader, Termination func, std::string& line)
+inline int read_until(file_reader& reader, Termination func, std::string& line)
 {
     int c = 0;
     line.reserve(DEFAULT_STRING_RESERVE_SIZE);
@@ -45,7 +45,7 @@ int read_until(file_reader& reader, Termination func, std::string& line)
 
 // Trims all leading and trailing whitespaces (one of " \t\n\v\f\r") from line.
 // Line is directly modified.
-void trim(std::string& line)
+inline void trim(std::string& line)
 {
     static constexpr const char* whitespaces = " \t\n\v\f\r";
 

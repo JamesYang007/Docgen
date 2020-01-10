@@ -47,7 +47,7 @@ add_custom_command(
 
 add_executable(core_unittests
                ${CMAKE_CURRENT_SOURCE_DIR}/core/lexer_routines_unittest.cpp
-               #${CMAKE_CURRENT_SOURCE_DIR}/core/lexer_unittest.cpp
+               ${CMAKE_CURRENT_SOURCE_DIR}/core/lexer_unittest.cpp
                )
 
 create_test("core_unittests" core_unittests)
