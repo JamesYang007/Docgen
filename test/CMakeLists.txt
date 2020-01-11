@@ -29,7 +29,6 @@ create_test("exceptions_unittests" exceptions_unittests)
 
 add_executable(io_unittests
                ${CMAKE_CURRENT_SOURCE_DIR}/io/file_reader_unittest.cpp
-               ${CMAKE_CURRENT_SOURCE_DIR}/io/string_reader_unittest.cpp
                )
 
 create_test("io_unittests" io_unittests)

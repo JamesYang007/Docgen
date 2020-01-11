@@ -3,7 +3,6 @@
 #include "status.hpp"
 #include "symbol.hpp"
 #include "io/file_reader.hpp"
-#include "io/string_reader.hpp"
 #include "tag_set.hpp"
 #include <iostream>
 
@@ -13,7 +12,6 @@ namespace core {
 static constexpr size_t DEFAULT_STRING_RESERVE_SIZE = 50;
 
 using file_reader = io::file_reader;
-using string_reader = io::string_reader;
 using symbol_t = Symbol;
 using token_t = Token<symbol_t>;
 using status_t = Status<token_t>;
