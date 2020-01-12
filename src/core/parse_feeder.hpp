@@ -33,9 +33,10 @@ struct ParseFeeder {
 		static void go() { writing_ = true; }
 		static void stop() { writing_ = false; }
 		static void skip() { to_skip_ = true; }
-		static void at(const std::string &key) { key_ = key; }
+		static void at(const std::string &key) { trim(); key_ = key; }
 		static bool at() { return !key_.empty(); }
 		static bool on() { return writing_ && at(); }
+		static bool open() { return on() && !to_skip_; }
 		static bool fed() { return at() && !val_()->empty(); }
 
 		template <class StringType>
@@ -51,12 +52,31 @@ struct ParseFeeder {
 				val_()->push_back(c);
 			}
 		}
-		static void feed(const Token<Symbol>& t)
+
+		using token_t = Token<Symbol>;
+
+		static bool feed(const token_t& t)
 		{
-			if (on() && !to_skip_) {
+			if (open()) {
+				if (fed()) {
+					/* force_feed<std::string>(std::string(t.spaces, ' ')); */
+				}
 				force_feed<const char *>(t.c_str());
 			}
 			to_skip_ = false;
+			return fed();
+		}
+
+		static void trim()
+		{
+			if (at()) {
+				while (std::isspace(val_()->back())) {
+					val_()->pop_back();
+				}
+				if (val_()->empty()) {
+					parsing_.erase(key_);
+				}
+			}
 		}
 
 		static void reset()
@@ -66,6 +86,7 @@ struct ParseFeeder {
 		}
 
 		static nlohmann::json&& move() {
+			trim();
 			parsed_["functions"].push_back(std::move(parsing_));
 			short_reset();
 			return std::move(parsed_);
