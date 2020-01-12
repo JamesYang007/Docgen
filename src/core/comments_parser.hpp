@@ -9,22 +9,19 @@ namespace core {
 
 struct CommentParser_routines
 {
-	protected:
-		static const routine_t on_open_, on_close_;
 	private:
 		static constexpr const char *DEFAULT_TAG = "desc";
-};
-
-const routine_t CommentParser_routines::on_open_ = [](const token_t& t) {
-	if (!ParseFeeder::at()) {
-		ParseFeeder::at(DEFAULT_TAG);
-	}
-	ParseFeeder::go();
-	ParseFeeder::skip();
-};
-
-const routine_t CommentParser_routines::on_close_ = [](const token_t& t) {
-	ParseFeeder::stop();
+	protected:
+		static constexpr const routine_t on_open_ = [](const token_t& t) {
+			if (!ParseFeeder::at()) {
+				ParseFeeder::at(DEFAULT_TAG);
+			}
+			ParseFeeder::go();
+			ParseFeeder::skip();
+		};
+		static constexpr const routine_t on_close_ = [](const token_t& t) {
+			ParseFeeder::stop();
+		};
 };
 
 class CommentParser : public ParseWorker, private CommentParser_routines

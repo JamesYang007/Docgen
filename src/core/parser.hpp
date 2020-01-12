@@ -30,7 +30,7 @@ class Parser : private ParseWorker
 		nlohmann::json parsed_;
 };
 
-void Parser::process(const std::vector<token_t>& tokens)
+inline void Parser::process(const std::vector<token_t>& tokens)
 {
 	ParseFeeder::reset();
 
