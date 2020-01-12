@@ -47,6 +47,17 @@ class ParseWorker
 		using workers_t = std::vector<worker_t>;
 		using workers_init_t = std::initializer_list<worker_t>;
 
+		/*
+		 * A SymbolHandler object holds an unordered set of symbols to match against (symbols_),
+		 * a function pointer which references a routine to execute on match (on_symbol_), and
+		 * an array of ParseWorker objects to process while still unmatched (workers_).
+		 *
+		 * If neg_ is set true, a given symbol will only match if it is not in symbols_.
+		 *
+		 * If working_ is not a nullptr, it indicates that one of the workers is currently in
+		 * the "working" state, and points to this worker; until it is done, only this worker
+		 * will be processed.
+		 */
 		class SymbolHandler
 		{
 			public:
