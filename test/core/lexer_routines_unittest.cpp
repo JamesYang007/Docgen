@@ -686,88 +686,71 @@ TEST_F(lexer_routines_fixture, process)
     status_t status;    // context is none
     process(reader, status);
 
-    EXPECT_EQ(status.tokens.size(), static_cast<size_t>(32));
+    EXPECT_EQ(status.tokens.size(), static_cast<size_t>(27));
     check_token(status.tokens[0].name, symbol_t::TEXT,
                 status.tokens[0].content, "#include <nlohmann/json.hpp>");
     check_token(status.tokens[1].name, symbol_t::NEWLINE,
                 status.tokens[1].content, "");
-    check_token(status.tokens[2].name, symbol_t::TEXT,
+    check_token(status.tokens[2].name, symbol_t::BEGIN_LINE_COMMENT,
                 status.tokens[2].content, "");
-    EXPECT_EQ(status.tokens[2].leading_ws_count, static_cast<uint32_t>(3));
+    check_token(status.tokens[3].name, symbol_t::TEXT,
+                status.tokens[3].content, "description...");
+    EXPECT_EQ(status.tokens[3].leading_ws_count, static_cast<uint32_t>(1));
 
-    check_token(status.tokens[3].name, symbol_t::BEGIN_LINE_COMMENT,
-                status.tokens[3].content, "");
-    check_token(status.tokens[4].name, symbol_t::TEXT,
-                status.tokens[4].content, "description...");
-    EXPECT_EQ(status.tokens[4].leading_ws_count, static_cast<uint32_t>(1));
+    check_token(status.tokens[4].name, symbol_t::TAGNAME,
+                status.tokens[4].content, "sdesc");
+    check_token(status.tokens[5].name, symbol_t::TEXT,
+                status.tokens[5].content, "some short description");
+    EXPECT_EQ(status.tokens[5].leading_ws_count, static_cast<uint32_t>(2));
 
-    check_token(status.tokens[5].name, symbol_t::TAGNAME,
-                status.tokens[5].content, "sdesc");
-    check_token(status.tokens[6].name, symbol_t::TEXT,
-                status.tokens[6].content, "some short description");
-    EXPECT_EQ(status.tokens[6].leading_ws_count, static_cast<uint32_t>(2));
-    check_token(status.tokens[7].name, symbol_t::NEWLINE,
+    check_token(status.tokens[6].name, symbol_t::NEWLINE,
+                status.tokens[6].content, "");
+    check_token(status.tokens[7].name, symbol_t::BEGIN_BLOCK_COMMENT,
                 status.tokens[7].content, "");
+    check_token(status.tokens[8].name, symbol_t::TAGNAME,
+                status.tokens[8].content, "param");
+    check_token(status.tokens[9].name, symbol_t::TEXT,
+                status.tokens[9].content, "x some int");
+    EXPECT_EQ(status.tokens[9].leading_ws_count, static_cast<uint32_t>(1));
 
-    check_token(status.tokens[8].name, symbol_t::TEXT,
-                status.tokens[8].content, "");
-    EXPECT_EQ(status.tokens[8].leading_ws_count, static_cast<uint32_t>(1));
-    check_token(status.tokens[9].name, symbol_t::BEGIN_BLOCK_COMMENT,
-                status.tokens[9].content, "");
-    check_token(status.tokens[10].name, symbol_t::TEXT,
+    check_token(status.tokens[10].name, symbol_t::NEWLINE,
                 status.tokens[10].content, "");
-    EXPECT_EQ(status.tokens[10].leading_ws_count, static_cast<uint32_t>(2));
-
-    check_token(status.tokens[11].name, symbol_t::TAGNAME,
-                status.tokens[11].content, "param");
+    check_token(status.tokens[11].name, symbol_t::STAR,
+                status.tokens[11].content, "");
     check_token(status.tokens[12].name, symbol_t::TEXT,
-                status.tokens[12].content, "x some int");
+                status.tokens[12].content, "that we care about");
     EXPECT_EQ(status.tokens[12].leading_ws_count, static_cast<uint32_t>(1));
 
     check_token(status.tokens[13].name, symbol_t::NEWLINE,
                 status.tokens[13].content, "");
-    check_token(status.tokens[14].name, symbol_t::TEXT,
+    check_token(status.tokens[14].name, symbol_t::END_BLOCK_COMMENT,
                 status.tokens[14].content, "");
-    EXPECT_EQ(status.tokens[14].leading_ws_count, static_cast<uint32_t>(3));
-    check_token(status.tokens[15].name, symbol_t::STAR,
-                status.tokens[15].content, "");
-
-    check_token(status.tokens[16].name, symbol_t::TEXT,
-                status.tokens[16].content, "that we care about");
-    EXPECT_EQ(status.tokens[16].leading_ws_count, static_cast<uint32_t>(1));
-    check_token(status.tokens[17].name, symbol_t::NEWLINE,
-                status.tokens[17].content, "");
-
-    check_token(status.tokens[18].name, symbol_t::TEXT,
+    check_token(status.tokens[15].name, symbol_t::TEXT,
+                status.tokens[15].content, "inline f(int x)");
+    check_token(status.tokens[16].name, symbol_t::SEMICOLON,
+                status.tokens[16].content, "");
+    check_token(status.tokens[17].name, symbol_t::TEXT,
+                status.tokens[17].content, "struct A");
+    check_token(status.tokens[18].name, symbol_t::OPEN_BRACE,
                 status.tokens[18].content, "");
-    EXPECT_EQ(status.tokens[18].leading_ws_count, static_cast<uint32_t>(3));
-    check_token(status.tokens[19].name, symbol_t::END_BLOCK_COMMENT,
-                status.tokens[19].content, "");
+    check_token(status.tokens[19].name, symbol_t::TEXT,
+                status.tokens[19].content, "const char");
+    check_token(status.tokens[20].name, symbol_t::STAR,
+                status.tokens[20].content, "");
+    check_token(status.tokens[21].name, symbol_t::TEXT,
+                status.tokens[21].content, "p = \"");
+    EXPECT_EQ(status.tokens[21].leading_ws_count, static_cast<uint32_t>(1));
 
-    check_token(status.tokens[20].name, symbol_t::TEXT,
-                status.tokens[20].content, "inline f(int x)");
-    check_token(status.tokens[21].name, symbol_t::SEMICOLON,
-                status.tokens[21].content, "");
-    check_token(status.tokens[22].name, symbol_t::TEXT,
-                status.tokens[22].content, "struct A");
-    check_token(status.tokens[23].name, symbol_t::OPEN_BRACE,
-                status.tokens[23].content, "");
-    check_token(status.tokens[24].name, symbol_t::TEXT,
-                status.tokens[24].content, "const char");
-    check_token(status.tokens[25].name, symbol_t::STAR,
+    check_token(status.tokens[22].name, symbol_t::TAGNAME,
+                status.tokens[22].content, "param");
+    check_token(status.tokens[23].name, symbol_t::TEXT,
+                status.tokens[23].content, "\"");
+    check_token(status.tokens[24].name, symbol_t::CLOSE_BRACE,
+                status.tokens[24].content, "");
+    check_token(status.tokens[25].name, symbol_t::SEMICOLON,
                 status.tokens[25].content, "");
-    check_token(status.tokens[26].name, symbol_t::TEXT,
-                status.tokens[26].content, "p = \"");
-    check_token(status.tokens[27].name, symbol_t::TAGNAME,
-                status.tokens[27].content, "param");
-    check_token(status.tokens[28].name, symbol_t::TEXT,
-                status.tokens[28].content, "\"");
-    check_token(status.tokens[29].name, symbol_t::CLOSE_BRACE,
-                status.tokens[29].content, "");
-    check_token(status.tokens[30].name, symbol_t::SEMICOLON,
-                status.tokens[30].content, "");
-    check_token(status.tokens[31].name, symbol_t::END_OF_FILE,
-                status.tokens[31].content, "");
+    check_token(status.tokens[26].name, symbol_t::END_OF_FILE,
+                status.tokens[26].content, "");
 }
 
 } // namespace core

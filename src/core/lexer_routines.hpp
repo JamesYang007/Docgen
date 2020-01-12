@@ -75,7 +75,7 @@ inline void tokenize_text(std::string& text, status_t& status)
     // trim whitespaces from text first
     uint32_t leading_whitespace_count = trim(text);
     // tokenize current TEXT only if it is non-empty
-    if (!text.empty() || leading_whitespace_count) {
+    if (!text.empty()) {
         status.tokens.emplace_back(symbol_t::TEXT, std::move(text), leading_whitespace_count);
     }
     // clear and reserve 
