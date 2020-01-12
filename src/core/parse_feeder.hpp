@@ -102,11 +102,5 @@ struct ParseFeeder {
 		}
 };
 
-nlohmann::json ParseFeeder::parsed_, ParseFeeder::parsing_;
-std::string ParseFeeder::key_;
-bool ParseFeeder::writing_ = false,
-     ParseFeeder::to_skip_ = false,
-     ParseFeeder::just_written_ = false;
-
 } // core
 } // docgen
