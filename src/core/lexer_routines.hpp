@@ -43,7 +43,7 @@ inline int read_until(file_reader& reader, Termination func, std::string& line)
 
 // Trims all leading and trailing whitespaces (one of " \t\n\v\f\r") from line.
 // Line is directly modified.
-inline void trim(std::string& line)
+inline uint32_t trim(std::string& line)
 {
     static constexpr const char* whitespaces = " \t\n\v\f\r";
 
@@ -53,24 +53,30 @@ inline void trim(std::string& line)
     // find last non-whitespace
     const auto end = line.find_last_not_of(whitespaces);
 
-    // If substring invalid, simply clear line
-    if (begin == std::string::npos || end == std::string::npos) {
+    // If substring invalid, simply clear line return length of string
+    // By symmetry, begin and end will be npos if and only if the string only
+    // consists of whitespaces. In this case, the leading whitespace count is 
+    // simply the length of the string.
+    if (begin == std::string::npos && end == std::string::npos) {
+        uint32_t leading_ws_count = line.size();
         line.clear();
-        return;
+        return leading_ws_count;
     }
 
     // otherwise, replace with substring
     line = line.substr(begin, end - begin + 1);
+
+    return begin; // number of leading whitespaces
 }
 
 // Trims text, tokenizes it, clears it, and reserve DEFAULT_STRING_RESERVE_SIZE.
 inline void tokenize_text(std::string& text, status_t& status)
 {
     // trim whitespaces from text first
-    trim(text);
+    uint32_t leading_whitespace_count = trim(text);
     // tokenize current TEXT only if it is non-empty
-    if (!text.empty()) {
-        status.tokens.emplace_back(symbol_t::TEXT, std::move(text));
+    if (!text.empty() || leading_whitespace_count) {
+        status.tokens.emplace_back(symbol_t::TEXT, std::move(text), leading_whitespace_count);
     }
     // clear and reserve 
     text.clear();
@@ -154,6 +160,7 @@ inline void process_line_comment(std::string& text, file_reader& reader, status_
         if (isspace(c)) {
             tokenize_text(text, status);
             status.tokens.emplace_back(symbol_t::BEGIN_LINE_COMMENT);
+            reader.back(c); // in case it's a single-char token
         }
         else {
             // no need to read back since c cannot be a whitespace and we ignore anyway
@@ -181,6 +188,7 @@ inline void process_block_comment(std::string& text, file_reader& reader, status
         if (isspace(c)) {
             tokenize_text(text, status);
             status.tokens.emplace_back(symbol_t::BEGIN_BLOCK_COMMENT);
+            reader.back(c); // may be special single-char token
         }
         // regular block comment: ignore text until end and stop tokenizing
         else {
@@ -269,6 +277,8 @@ inline void process(file_reader& reader, status_t& status)
         text.push_back(c);
     }
 
+    // tokenize last text then EOF
+    tokenize_text(text, status);
     status.tokens.emplace_back(token_t::symbol_t::END_OF_FILE);
 }
 
