@@ -374,14 +374,20 @@ TEST_F(lexer_routines_fixture, tokenize_tag_name_sdesc)
     static constexpr const char* content =
         "sdesc\t "
         ;
+    static constexpr const char* text_content =
+        "some text";
+
+    std::string text(text_content);
     write_file(content);
     file_reader reader(filename);
     status_t status;    // context is none
-    tokenize_tag_name(reader, status);
+    tokenize_tag_name(text, reader, status);
 
-    EXPECT_EQ(status.tokens.size(), static_cast<size_t>(1));
-    check_token(status.tokens[0].name, symbol_t::TAGNAME,
-                status.tokens[0].content, "sdesc");
+    EXPECT_EQ(status.tokens.size(), static_cast<size_t>(2));
+    check_token(status.tokens[0].name, symbol_t::TEXT,
+                status.tokens[0].content, text_content);
+    check_token(status.tokens[1].name, symbol_t::TAGNAME,
+                status.tokens[1].content, "sdesc");
     EXPECT_EQ(reader.peek(), '\t');
 }
 
@@ -390,14 +396,20 @@ TEST_F(lexer_routines_fixture, tokenize_tag_name_param)
     static constexpr const char* content =
         "param\n \t "
         ;
+    static constexpr const char* text_content =
+        "some text";
+
+    std::string text(text_content);
     write_file(content);
     file_reader reader(filename);
     status_t status;    // context is none
-    tokenize_tag_name(reader, status);
+    tokenize_tag_name(text, reader, status);
 
-    EXPECT_EQ(status.tokens.size(), static_cast<size_t>(1));
-    check_token(status.tokens[0].name, symbol_t::TAGNAME,
-                status.tokens[0].content, "param");
+    EXPECT_EQ(status.tokens.size(), static_cast<size_t>(2));
+    check_token(status.tokens[0].name, symbol_t::TEXT,
+                status.tokens[0].content, text_content);
+    check_token(status.tokens[1].name, symbol_t::TAGNAME,
+                status.tokens[1].content, "param");
     EXPECT_EQ(reader.peek(), '\n');
 }
 
@@ -406,14 +418,20 @@ TEST_F(lexer_routines_fixture, tokenize_tag_name_tparam)
     static constexpr const char* content =
         "tparam\n \t "
         ;
+    static constexpr const char* text_content =
+        "some text";
+
+    std::string text(text_content);
     write_file(content);
     file_reader reader(filename);
     status_t status;    // context is none
-    tokenize_tag_name(reader, status);
+    tokenize_tag_name(text, reader, status);
 
-    EXPECT_EQ(status.tokens.size(), static_cast<size_t>(1));
-    check_token(status.tokens[0].name, symbol_t::TAGNAME,
-                status.tokens[0].content, "tparam");
+    EXPECT_EQ(status.tokens.size(), static_cast<size_t>(2));
+    check_token(status.tokens[0].name, symbol_t::TEXT,
+                status.tokens[0].content, text_content);
+    check_token(status.tokens[1].name, symbol_t::TAGNAME,
+                status.tokens[1].content, "tparam");
     EXPECT_EQ(reader.peek(), '\n');
 }
 
@@ -422,16 +440,17 @@ TEST_F(lexer_routines_fixture, tokenize_tag_name_invalid)
     static constexpr const char* content =
         "tparram\n \t "
         ;
+    static constexpr const char* text_content =
+        "some text";
+
+    std::string text(text_content);
     write_file(content);
     file_reader reader(filename);
     status_t status;    // context is none
-    tokenize_tag_name(reader, status);
+    tokenize_tag_name(text, reader, status);
 
-    EXPECT_EQ(status.tokens.size(), static_cast<size_t>(2));
-    check_token(status.tokens[0].name, symbol_t::TEXT,
-                status.tokens[0].content, "@");
-    check_token(status.tokens[1].name, symbol_t::TEXT,
-                status.tokens[1].content, "tparram");
+    EXPECT_EQ(status.tokens.size(), static_cast<size_t>(0));
+    EXPECT_EQ(text, std::string(text_content) + "@tparram");
     EXPECT_EQ(reader.peek(), '\n');
 }
 
@@ -440,14 +459,20 @@ TEST_F(lexer_routines_fixture, tokenize_tag_name_eof)
     static constexpr const char* content =
         "tparam"
         ;
+    static constexpr const char* text_content =
+        "some text";
+
+    std::string text(text_content);
     write_file(content);
     file_reader reader(filename);
     status_t status;    // context is none
-    tokenize_tag_name(reader, status);
+    tokenize_tag_name(text, reader, status);
 
-    EXPECT_EQ(status.tokens.size(), static_cast<size_t>(1));
-    check_token(status.tokens[0].name, symbol_t::TAGNAME,
-                status.tokens[0].content, "tparam");
+    EXPECT_EQ(status.tokens.size(), static_cast<size_t>(2));
+    check_token(status.tokens[0].name, symbol_t::TEXT,
+                status.tokens[0].content, text_content);
+    check_token(status.tokens[1].name, symbol_t::TAGNAME,
+                status.tokens[1].content, "tparam");
     EXPECT_EQ(reader.peek(), static_cast<int>(file_reader::termination));
 }
 

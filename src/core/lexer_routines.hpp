@@ -114,7 +114,7 @@ inline bool process_char(int c, std::string& text, status_t& status)
 
 // If tag name is not a valid one, assume it is simply text.
 // It is expected that the caller immediately read "@" before calling.
-inline void tokenize_tag_name(file_reader& reader, status_t& status)
+inline void tokenize_tag_name(std::string& text, file_reader& reader, status_t& status)
 {
     static constexpr const auto is_alpha = 
         [](char x) {return isalpha(x);};
@@ -126,13 +126,15 @@ inline void tokenize_tag_name(file_reader& reader, status_t& status)
 
     // if valid tag, append token with tag name
     if (tag_set.find(tagname) != tag_set.end()) {
+        tokenize_text(text, status);
         status.tokens.emplace_back(symbol_t::TAGNAME, std::move(tagname));
     }
 
     // otherwise, assume TEXT: tokenize "@" as TEXT first then tagname as a separate tag
     else {
-        status.tokens.emplace_back(symbol_t::TEXT, "@");
-        status.tokens.emplace_back(symbol_t::TEXT, std::move(tagname));
+        text.push_back('@');
+        text.append(std::move(tagname));
+        //status.tokens.emplace_back(symbol_t::TEXT, std::move(tagname));
     }
 }
 
@@ -140,8 +142,7 @@ inline bool process_tag_name(int c, std::string& text,
                              file_reader& reader, status_t& status)
 {
     if (c == '@') {
-        tokenize_text(text, status);
-        tokenize_tag_name(reader, status);
+        tokenize_tag_name(text, reader, status);
         return true;
     }
     return false;
