@@ -17,7 +17,6 @@ class Parser : private ParseWorker
 			: ParseWorker {
 				CommentParser(Symbol::BEGIN_LINE_COMMENT, Symbol::NEWLINE),
 				CommentParser(Symbol::BEGIN_BLOCK_COMMENT, Symbol::END_BLOCK_COMMENT, {
-					TagParser(),
 					IgnoreParser(Symbol::NEWLINE, Symbol::STAR)
 				})
 			}

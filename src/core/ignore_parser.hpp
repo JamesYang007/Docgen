@@ -16,9 +16,6 @@ const routine_t IgnoreParser_routines::on_start_ = [](const token_t& t) {
 };
 
 const routine_t IgnoreParser_routines::on_stop_ = [](const token_t& t) {
-	if (ParseFeeder::fed()) {
-		ParseFeeder::force_feed(' ');
-	}
 	ParseFeeder::go();
 };
 
