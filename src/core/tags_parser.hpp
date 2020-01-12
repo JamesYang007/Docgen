@@ -14,9 +14,6 @@ struct TagParser_routines
 
 const routine_t TagParser_routines::on_tag_ = [](const token_t& t) {
 	ParseFeeder::at(t.content);
-	if (ParseFeeder::fed()) {
-		ParseFeeder::force_feed(' ');
-	}
 	ParseFeeder::go();
 	ParseFeeder::skip();
 };
