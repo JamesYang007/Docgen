@@ -58,8 +58,8 @@ struct ParseFeeder {
 		static bool feed(const token_t& t)
 		{
 			if (open()) {
-				if (fed()) {
-					/* force_feed<std::string>(std::string(t.spaces, ' ')); */
+				if (fed() && t.leading_ws_count) {
+					force_feed<std::string>(std::string(t.leading_ws_count, ' '));
 				}
 				force_feed<const char *>(t.c_str());
 			}
