@@ -24,10 +24,12 @@ using worker_t = ParseWorker;
  * so long as it isn't matched (waiting to match), proc() will call for
  * the handler to handle_workers(), which will process based on
  * its array of ParseWorker objects. When the current handler is matched,
- * proc() will call the handler's handle_token() (to execute passed routine)
- * and set to move on to the next handler. On the last handler, this will
- * wrap around to the first, for so long as the passed "iters" limiter
- * isn't exceeded (unlimited by default).
+ * proc() will call for the handler to handle_token(), which executes
+ * the routine set by handler's passed function pointer; then, set to
+ * move on to the next handler. On the last handler, this will wrap around
+ * to the first, for so long as the passed "iters" limiter isn't
+ * exceeded (unlimited by default); once it is, this ParseWorker is said
+ * to be in a "done" state, on which proc() will no longer execute.
  *
  * Said to be in a "working" state when handling a SymbolHandler after
  * the first; this only matters to a SymbolHandler which is holding
@@ -116,16 +118,7 @@ class ParseWorker
 };
 
 /*
- * On every call to proc(), the current handler is checked for a match;
- * so long as it isn't matched (waiting to match), proc() will call for
- * the handler to handle_workers(), which will process based on
- * its array of ParseWorker objects. When the current handler is matched,
- * proc() will call for the handler to handle_token(), which executes
- * the routine set by handler's passed function pointer; then, set to
- * move on to the next handler. On the last handler, this will wrap around
- * to the first, for so long as the passed "iters" limiter isn't
- * exceeded (unlimited by default); once it is, this ParseWorker is said
- * to be in a "done" state, on which proc() will no longer execute.
+ * Processes based on the current handler.
  */
 void ParseWorker::proc(const token_t& t)
 {
@@ -184,6 +177,10 @@ void ParseWorker::SymbolHandler::handle_token(const token_t& t)
 	}
 }
 
+/*
+ * Process all contained ParseWorker objects when none are "working";
+ * if one is, process only that one until it is done.
+ */
 void ParseWorker::SymbolHandler::handle_workers(const token_t& t)
 {
 	if (working_) {
@@ -206,6 +203,9 @@ void ParseWorker::SymbolHandler::handle_workers(const token_t& t)
 	}
 }
 
+/*
+ * Reset all contained ParseWorker objects
+ */
 void ParseWorker::SymbolHandler::reset_workers()
 {
 	for (worker_t& p : workers_) {
