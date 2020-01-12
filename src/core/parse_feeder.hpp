@@ -68,7 +68,6 @@ struct ParseFeeder {
 					else if (t.leading_ws_count) {
 						force_feed<std::string>(std::string(t.leading_ws_count, ' '));
 					}
-					std::cerr << t.c_str() << "-->" << t.leading_ws_count << '\n';
 				}
 				force_feed<const char *>(t.c_str());
 				just_written_ = true;
