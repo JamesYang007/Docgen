@@ -9,10 +9,12 @@ namespace core {
 struct TagParser_routines
 {
 	protected:
-		static constexpr const routine_t on_tag_  = [](const token_t& t) {
-			ParseFeeder::at(t.content);
-			ParseFeeder::go();
-			ParseFeeder::skip();
+		using routine_t = ParseWorker::SymbolHandler::routine_t;
+
+		static constexpr const routine_t on_tag_  = [](const token_t& t, ParseFeeder& f) {
+			f.at(t.content);
+			f.go();
+			f.skip();
 		};
 };
 

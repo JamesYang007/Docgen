@@ -10,11 +10,11 @@
 namespace docgen {
 namespace core {
 
-class Parser : private ParseWorker
+class Parser
 {
 	public:
 		Parser()
-			: ParseWorker {
+			: worker_ {
 				CommentParser(Symbol::BEGIN_LINE_COMMENT, Symbol::NEWLINE),
 				CommentParser(Symbol::BEGIN_BLOCK_COMMENT, Symbol::END_BLOCK_COMMENT, {
 					IgnoreParser(Symbol::NEWLINE, Symbol::STAR)
@@ -24,22 +24,21 @@ class Parser : private ParseWorker
 
 		void process(const std::vector<token_t>& tokens);
 
-		const nlohmann::json& parsed() const { return parsed_; }
+		const nlohmann::json& parsed() { return feeder_.parsed(); }
 
 	private:
-		nlohmann::json parsed_;
+		ParseWorker worker_;
+		ParseFeeder feeder_;
 };
 
 inline void Parser::process(const std::vector<token_t>& tokens)
 {
-	ParseFeeder::reset();
+	feeder_.reset();
 
 	for (const token_t& token : tokens) {
-		proc(token);
-		ParseFeeder::feed(token);
+		worker_.proc(token, feeder_);
+		feeder_.feed(token);
 	}
-
-	parsed_ = ParseFeeder::move();
 }
 
 } // namespace docgen
