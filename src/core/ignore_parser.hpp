@@ -1,7 +1,7 @@
 #pragma once
 
 #include "parse_feeder.hpp"
-#include "parser.hpp"
+#include "parse_worker.hpp"
 
 namespace docgen {
 namespace core {

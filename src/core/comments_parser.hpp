@@ -1,7 +1,6 @@
 #pragma once
 
 #include "parse_feeder.hpp"
-#include "parser.hpp"
 #include "tags_parser.hpp"
 
 namespace docgen {
