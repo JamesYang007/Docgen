@@ -44,6 +44,7 @@ inline int read_until(file_reader& reader, Termination func, std::string& line)
 
 // Trims all leading and trailing whitespaces (one of " \t\n\v\f\r") from line.
 // Line is directly modified.
+// Returns leading whitespace count of original line.
 inline uint32_t trim(std::string& line)
 {
     static constexpr const char* whitespaces = " \t\n\v\f\r";
@@ -71,6 +72,7 @@ inline uint32_t trim(std::string& line)
 }
 
 // Trims text, tokenizes it, clears it, and reserve DEFAULT_STRING_RESERVE_SIZE.
+// (Trimmed) text is only tokenized if it is non-empty.
 inline void tokenize_text(std::string& text, status_t& status)
 {
     // trim whitespaces from text first
@@ -85,8 +87,8 @@ inline void tokenize_text(std::string& text, status_t& status)
 }
 
 // If c is one of single-char special tokens (see symbol.hpp),
-// then text is tokenized and the single-char special token is tokenized afterwards.
-// The tokens are appended to status.tokens.
+// then text is first tokenized then the single-char special token.
+// The tokens are appended to status.tokens in this order.
 // Otherwise, no operations are performed.
 // Returns true if and only if a single-char special token created.
 inline bool process_char(int c, std::string& text, status_t& status)
@@ -125,20 +127,22 @@ inline void tokenize_tag_name(std::string& text, file_reader& reader, status_t& 
     int c = read_until(reader, is_alpha, tagname);
     reader.back(c);
 
-    // if valid tag, append token with tag name
+    // if valid tag, append text token then token with tag name
     if (tag_set.find(tagname) != tag_set.end()) {
         tokenize_text(text, status);
         status.tokens.emplace_back(symbol_t::TAGNAME, std::move(tagname));
     }
 
-    // otherwise, assume TEXT: tokenize "@" as TEXT first then tagname as a separate tag
+    // otherwise, assume part of text: append "@" then tag name to text 
     else {
         text.push_back('@');
-        text.append(std::move(tagname));
-        //status.tokens.emplace_back(symbol_t::TEXT, std::move(tagname));
+        text.append(tagname);
     }
 }
 
+// If c is '@', try to tokenize tag name.
+// Behavior is the same as tokenize_tag_name.
+// Returns true if and only if c is '@'.
 inline bool process_tag_name(int c, std::string& text, 
                              file_reader& reader, status_t& status)
 {
@@ -159,17 +163,20 @@ inline void process_line_comment(std::string& text, file_reader& reader, status_
 
     if (c == '/') {
         c = reader.read();
+        // valid triple-slash comment
         if (isspace(c)) {
             tokenize_text(text, status);
             status.tokens.emplace_back(symbol_t::BEGIN_LINE_COMMENT);
             reader.back(c); // in case it's a single-char token
         }
+        // invalid triple-slash comment
         else {
             // no need to read back since c cannot be a whitespace and we ignore anyway
             ignore_until(reader, is_not_newline);
         }
     }
 
+    // invalid triple-slash comment
     else {
         reader.back(c); // the character just read may be '\n'
         ignore_until(reader, is_not_newline);
@@ -201,16 +208,20 @@ inline void process_block_comment(std::string& text, file_reader& reader, status
 
     // regular block comment
     else {
-        ignore_until(reader, is_not_end_block);
-        reader.read(); // read the '/'
+        ignore_until(reader, is_not_end_block); // stops after reading '*' in "*/"
+        reader.read(); // read the '/' after 
     }
 }
 
-// If c is not '/', then no operation done and returns false.
-// Otherwise, if it's a valid line comment ("/// ") then same as process_line_comment.
-// If it's a valid block comment ("/*! ") then same as process_block_comment.
-// Otherwise, text is updated to include all characters read.
-// In any case, returns true since first char has been processed.
+// If c is not '/' or '*', then no operation done and returns false.
+// If c is '/', and if it's a possible line comment ("//") then same as process_line_comment;
+// if it's a possible block comment ("/*") then same as process_block_comment;
+// otherwise, text is updated to include all characters read.
+//
+// If c is '*', and if it is the ending of a block comment ("*/"), text tokenized then END_BLOCK_COMMENT;
+// otherwise, text tokenized then STAR.
+//
+// In any case, returns true if first char has been processed.
 inline bool process_string(int c, std::string& text,
                            file_reader& reader, status_t& status)
 {
