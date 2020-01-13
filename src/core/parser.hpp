@@ -4,8 +4,8 @@
 #include <nlohmann/json.hpp>
 #include "parse_feeder.hpp"
 #include "parse_worker.hpp"
-#include "comments_parser.hpp"
-#include "ignore_parser.hpp"
+#include "comment_worker.hpp"
+#include "ignore_worker.hpp"
 
 namespace docgen {
 namespace core {
@@ -15,9 +15,9 @@ class Parser
 	public:
 		Parser()
 			: worker_ {
-				CommentParser(Symbol::BEGIN_LINE_COMMENT, Symbol::NEWLINE),
-				CommentParser(Symbol::BEGIN_BLOCK_COMMENT, Symbol::END_BLOCK_COMMENT, {
-					IgnoreParser(Symbol::NEWLINE, Symbol::STAR)
+				CommentWorker(Symbol::BEGIN_LINE_COMMENT, Symbol::NEWLINE),
+				CommentWorker(Symbol::BEGIN_BLOCK_COMMENT, Symbol::END_BLOCK_COMMENT, {
+					IgnoreWorker(Symbol::NEWLINE, Symbol::STAR)
 				})
 			}
 		{}

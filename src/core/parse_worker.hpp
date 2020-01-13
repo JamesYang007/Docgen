@@ -7,6 +7,7 @@
 #include "symbol.hpp"
 #include "token.hpp"
 #include "parse_feeder.hpp"
+#include "worker_routine.hpp"
 
 namespace docgen {
 namespace core {
@@ -57,7 +58,7 @@ class ParseWorker
 			using symbol_set_t = std::unordered_set<symbol_t>;
 			using symbol_arr_init_t = std::initializer_list<symbol_t>;
 
-			using routine_t = void (*)(const token_t&, ParseFeeder&);
+			using routine_t = WorkerRoutine::routine_t;
 
 			SymbolHandler(symbol_arr_init_t s, routine_t on_s, worker_arr_init_t w={})
 				: symbols_(s), on_symbol_(on_s), workers_(w)
