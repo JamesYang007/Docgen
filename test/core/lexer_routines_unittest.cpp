@@ -27,7 +27,7 @@ protected:
                            char expected_last_char, Condition condition) 
     {
         write_file(content);
-        file_reader reader(filename);
+        file_reader reader(file);
         std::string actual;
         int last_char = ignore_until(reader, condition);
         EXPECT_EQ(last_char, expected_last_char);
@@ -40,7 +40,7 @@ protected:
                          char expected_last_char, Condition condition)
     {
         write_file(content);
-        file_reader reader(filename);
+        file_reader reader(file);
         std::string actual;
         int last_char = read_until(reader, condition, actual);
         EXPECT_EQ(last_char, expected_last_char);
@@ -380,7 +380,7 @@ TEST_F(lexer_routines_fixture, tokenize_tag_name_sdesc)
 
     std::string text(text_content);
     write_file(content);
-    file_reader reader(filename);
+    file_reader reader(file);
     status_t status;    // context is none
     tokenize_tag_name(text, reader, status);
 
@@ -402,7 +402,7 @@ TEST_F(lexer_routines_fixture, tokenize_tag_name_param)
 
     std::string text(text_content);
     write_file(content);
-    file_reader reader(filename);
+    file_reader reader(file);
     status_t status;    // context is none
     tokenize_tag_name(text, reader, status);
 
@@ -424,7 +424,7 @@ TEST_F(lexer_routines_fixture, tokenize_tag_name_tparam)
 
     std::string text(text_content);
     write_file(content);
-    file_reader reader(filename);
+    file_reader reader(file);
     status_t status;    // context is none
     tokenize_tag_name(text, reader, status);
 
@@ -446,7 +446,7 @@ TEST_F(lexer_routines_fixture, tokenize_tag_name_invalid)
 
     std::string text(text_content);
     write_file(content);
-    file_reader reader(filename);
+    file_reader reader(file);
     status_t status;    // context is none
     tokenize_tag_name(text, reader, status);
 
@@ -465,7 +465,7 @@ TEST_F(lexer_routines_fixture, tokenize_tag_name_eof)
 
     std::string text(text_content);
     write_file(content);
-    file_reader reader(filename);
+    file_reader reader(file);
     status_t status;    // context is none
     tokenize_tag_name(text, reader, status);
 
@@ -492,7 +492,7 @@ TEST_F(lexer_routines_fixture, process_tag_name_valid)
         "some existing text...";
 
     write_file(content);
-    file_reader reader(filename);
+    file_reader reader(file);
     status_t status;
     std::string text(text_content);
     bool res = process_tag_name('@', text, reader, status);
@@ -513,7 +513,7 @@ TEST_F(lexer_routines_fixture, process_tag_name_invalid)
         "  some existing text... \n";
 
     write_file(content);
-    file_reader reader(filename);
+    file_reader reader(file);
     status_t status;
     std::string text(text_content);
     bool res = process_tag_name('m', text, reader, status);
@@ -537,7 +537,7 @@ TEST_F(lexer_routines_fixture, process_line_comment_valid)
         "some text...";
 
     write_file(content);
-    file_reader reader(filename);
+    file_reader reader(file);
     status_t status;
     std::string text(text_content);
     process_line_comment(text, reader, status);
@@ -557,7 +557,7 @@ TEST_F(lexer_routines_fixture, process_line_comment_invalid_nospace)
         "\n  some text...   \t";
 
     write_file(content);
-    file_reader reader(filename);
+    file_reader reader(file);
     status_t status;
     std::string text(text_content);
     process_line_comment(text, reader, status);
@@ -575,7 +575,7 @@ TEST_F(lexer_routines_fixture, process_line_comment_invalid_noslash)
         "\n  some text...   \t";
 
     write_file(content);
-    file_reader reader(filename);
+    file_reader reader(file);
     status_t status;
     std::string text(text_content);
     process_line_comment(text, reader, status);
@@ -599,7 +599,7 @@ TEST_F(lexer_routines_fixture, process_block_comment_valid)
         "some text...";
 
     write_file(content);
-    file_reader reader(filename);
+    file_reader reader(file);
     status_t status;
     std::string text(text_content);
     process_block_comment(text, reader, status);
@@ -619,7 +619,7 @@ TEST_F(lexer_routines_fixture, process_block_comment_invalid_nospace)
         "\n  some text...   \t";
 
     write_file(content);
-    file_reader reader(filename);
+    file_reader reader(file);
     status_t status;
     std::string text(text_content);
     process_block_comment(text, reader, status);
@@ -637,7 +637,7 @@ TEST_F(lexer_routines_fixture, process_block_comment_invalid_noexclam)
         "\n  some text...   \t";
 
     write_file(content);
-    file_reader reader(filename);
+    file_reader reader(file);
     status_t status;
     std::string text(text_content);
     process_block_comment(text, reader, status);
@@ -659,7 +659,7 @@ TEST_F(lexer_routines_fixture, process_string_invalid_comment)
         " some text...     ";
 
     write_file(content);
-    file_reader reader(filename);
+    file_reader reader(file);
     status_t status;    // context is none
     std::string text(text_content);
     bool res = process_string('/', text, reader, status);
@@ -678,7 +678,7 @@ TEST_F(lexer_routines_fixture, process_string_invalid_slash)
         " some text...     ";
 
     write_file(content);
-    file_reader reader(filename);
+    file_reader reader(file);
     status_t status;    // context is none
     std::string text(text_content);
     bool res = process_string('x', text, reader, status);
@@ -708,7 +708,7 @@ TEST_F(lexer_routines_fixture, process)
         ;
 
     write_file(content);
-    file_reader reader(filename);
+    file_reader reader(file);
     status_t status;    // context is none
     process(reader, status);
 

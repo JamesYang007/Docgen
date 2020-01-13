@@ -9,17 +9,12 @@ namespace io {
 
 struct file_reader
 {
-    file_reader(const char* filename)
-        : file_(fopen(filename, "r"))
+    file_reader(FILE* file)
+        : file_(file)
     {
         if (!file_) {
-            throw exceptions::system_error(filename);
+            throw exceptions::system_error("file not valid");
         }
-    }
-
-    ~file_reader()
-    {
-        fclose(file_);
     }
 
     int read()

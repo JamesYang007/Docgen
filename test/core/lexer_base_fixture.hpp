@@ -14,6 +14,16 @@ protected:
 
     static constexpr const char* filename = ".lexer_routines_unittest.data.txt";
     static constexpr size_t buf_size = 20;
+    FILE* file;
+
+    lexer_base_fixture()
+        : file(fopen(filename, "r"))
+    {}
+
+    ~lexer_base_fixture()
+    {
+        fclose(file);
+    }
 
     void write_file(const char* content)
     {

@@ -10,8 +10,8 @@ struct Lexer
     using file_reader = lexer_details::file_reader;
     using status_t = lexer_details::status_t;
 
-    Lexer(const char* filepath)
-        : reader_(filepath)
+    Lexer(FILE* file)
+        : reader_(file)
     {
         status_.tokens.reserve(DEFAULT_TOKEN_ARR_SIZE);
     }

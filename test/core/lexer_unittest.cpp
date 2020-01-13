@@ -19,7 +19,7 @@ TEST_F(lexer_fixture, process_no_comment)
         ;
 
     write_file(content);
-    Lexer lexer(filename);
+    Lexer lexer(file);
     lexer.process();
     const auto& tokens = lexer.get_tokens();
 
@@ -48,7 +48,7 @@ TEST_F(lexer_fixture, process_one_line_comment)
         ;
 
     write_file(content);
-    Lexer lexer(filename);
+    Lexer lexer(file);
     lexer.process();
     const auto& tokens = lexer.get_tokens();
 
@@ -87,7 +87,7 @@ TEST_F(lexer_fixture, process_two_line_comment)
         ;
 
     write_file(content);
-    Lexer lexer(filename);
+    Lexer lexer(file);
     lexer.process();
     const auto& tokens = lexer.get_tokens();
 
@@ -130,7 +130,7 @@ TEST_F(lexer_fixture, process_one_block_comment)
         ;
 
     write_file(content);
-    Lexer lexer(filename);
+    Lexer lexer(file);
     lexer.process();
     const auto& tokens = lexer.get_tokens();
 
@@ -173,7 +173,7 @@ TEST_F(lexer_fixture, process_two_block_comment)
         ;
 
     write_file(content);
-    Lexer lexer(filename);
+    Lexer lexer(file);
     lexer.process();
     const auto& tokens = lexer.get_tokens();
 
@@ -232,7 +232,7 @@ TEST_F(lexer_fixture, process_line_block_comment)
         ;
 
     write_file(content);
-    Lexer lexer(filename);
+    Lexer lexer(file);
     lexer.process();
     const auto& tokens = lexer.get_tokens();
 

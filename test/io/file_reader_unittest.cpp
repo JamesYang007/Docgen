@@ -14,20 +14,22 @@ protected:
 
     void read_test(const char* filepath)
     {
+        FILE* file = fopen(filepath, "r+");
+
         // actual
-        file_reader reader(filepath);
+        file_reader reader(file);
         std::string actual;
         while (reader.peek() != EOF) {
             actual.push_back(reader.read());
         }
 
         // expected 
-        FILE* fp = fopen(filepath, "r");
-        fseek(fp, 0L, SEEK_END);
-        std::string expected(ftell(fp), 0);
-        rewind(fp);
-        fread(&expected[0], sizeof(char), expected.size(), fp);
-        fclose(fp);
+        fseek(file, 0L, SEEK_END);
+        std::string expected(ftell(file), 0);
+        rewind(file);
+        fread(&expected[0], sizeof(char), expected.size(), file);
+
+        fclose(file);
 
         EXPECT_EQ(actual, expected);
     }
@@ -35,18 +37,24 @@ protected:
 
 TEST_F(file_reader_fixture, ctor)
 {
-    file_reader reader(empty_filepath);
+    FILE* file = fopen(empty_filepath, "r");
+    file_reader reader(file);
+    fclose(file);
 }
 
 TEST_F(file_reader_fixture, peek_empty)
 {
-    file_reader reader(empty_filepath);
+    FILE* file = fopen(empty_filepath, "r");
+    file_reader reader(file);
+    fclose(file);
     EXPECT_EQ(reader.peek(), EOF);
 }
 
 TEST_F(file_reader_fixture, read_empty_multiple)
 {
-    file_reader reader(empty_filepath);
+    FILE* file = fopen(empty_filepath, "r");
+    file_reader reader(file);
+    fclose(file);
     for (int i = 0; i < 10; ++i) {
         EXPECT_EQ(reader.read(), EOF);
     }
