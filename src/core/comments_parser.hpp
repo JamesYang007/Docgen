@@ -16,7 +16,7 @@ struct CommentParser_routines
 		using routine_t = ParseWorker::SymbolHandler::routine_t;
 
 		static constexpr const routine_t on_open_ = [](const token_t&, ParseFeeder& f) {
-			if (f.at()) {
+			if (!f.at()) {
 				f.at(DEFAULT_TAG);
 			}
 			f.go();
