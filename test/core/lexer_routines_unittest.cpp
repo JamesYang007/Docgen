@@ -2,6 +2,7 @@
 
 namespace docgen {
 namespace core {
+namespace lexer_details {
 
 struct lexer_routines_fixture : lexer_base_fixture
 {
@@ -778,5 +779,6 @@ TEST_F(lexer_routines_fixture, process)
                 status.tokens[26].content, "");
 }
 
+} // namespace lexer_details
 } // namespace core
 } // namespace docgen

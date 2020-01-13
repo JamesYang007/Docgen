@@ -4,12 +4,11 @@
 namespace docgen {
 namespace core {
 
-static constexpr size_t DEFAULT_TOKEN_ARR_SIZE = 50;
-
 struct Lexer
 {
-    // token_t, status_t defined in lexer_routines.hpp
-    using symbol_t = typename token_t::symbol_t;
+    using symbol_t = lexer_details::symbol_t;
+    using file_reader = lexer_details::file_reader;
+    using status_t = lexer_details::status_t;
 
     Lexer(const char* filepath)
         : reader_(filepath)
@@ -19,7 +18,7 @@ struct Lexer
 
     void process()
     {
-        core::process(reader_, status_);
+        lexer_details::process(reader_, status_);
     }
     
     const status_t::token_arr_t& get_tokens() const
@@ -28,7 +27,9 @@ struct Lexer
     }
 
 private:
-    io::file_reader reader_;
+    static constexpr size_t DEFAULT_TOKEN_ARR_SIZE = 50;
+
+    file_reader reader_;
     status_t status_; // keeps track of last token value (enum)
 };
 

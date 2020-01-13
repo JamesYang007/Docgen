@@ -8,6 +8,7 @@
 
 namespace docgen {
 namespace core {
+namespace lexer_details {
 
 static constexpr size_t DEFAULT_STRING_RESERVE_SIZE = 50;
 
@@ -283,5 +284,6 @@ inline void process(file_reader& reader, status_t& status)
     status.tokens.emplace_back(token_t::symbol_t::END_OF_FILE);
 }
 
+} // namespace lexer_details
 } // namespace core
 } // namespace docgen

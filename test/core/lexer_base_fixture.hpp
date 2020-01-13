@@ -8,9 +8,9 @@ namespace core {
 struct lexer_base_fixture : ::testing::Test
 {
 protected:
-    using status_t = core::status_t;
-    using token_t = core::token_t;
-    using symbol_t = typename token_t::symbol_t;
+    using status_t = lexer_details::status_t;
+    using token_t = lexer_details::token_t;
+    using symbol_t = lexer_details::symbol_t;
 
     static constexpr const char* filename = ".lexer_routines_unittest.data.txt";
     static constexpr size_t buf_size = 20;
