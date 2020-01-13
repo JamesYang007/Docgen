@@ -2,6 +2,7 @@
 #include <cassert>
 #include <cstdio>
 #include <vector>
+#include <exceptions/exceptions.hpp>
 
 namespace docgen {
 namespace io {
@@ -11,7 +12,9 @@ struct file_reader
     file_reader(const char* filename)
         : file_(fopen(filename, "r"))
     {
-        assert(file_ != nullptr);
+        if (!file_) {
+            throw exceptions::system_error(filename);
+        }
     }
 
     ~file_reader()
