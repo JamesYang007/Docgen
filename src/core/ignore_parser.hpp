@@ -8,11 +8,13 @@ namespace core {
 
 struct IgnoreParser_routines {
 	protected:
-		static constexpr const routine_t on_start_ = [](const token_t& t) {
-			ParseFeeder::stop();
+		using routine_t = ParseWorker::SymbolHandler::routine_t;
+
+		static constexpr const routine_t on_start_ = [](const token_t&, ParseFeeder& f) {
+			f.stop();
 		};
-		static constexpr const routine_t on_stop_ = [](const token_t& t) {
-			ParseFeeder::go();
+		static constexpr const routine_t on_stop_ = [](const token_t&, ParseFeeder& f) {
+			f.go();
 		};
 };
 

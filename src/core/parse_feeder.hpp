@@ -8,99 +8,109 @@
 namespace docgen {
 namespace core {
 
-struct ParseFeeder {
+class ParseFeeder {
+	public:
+		using token_t = Token<Symbol>;
+
+		template <class StringType>
+		void force_feed(const StringType& s);
+		void force_feed(char c);
+		bool feed(const token_t& t);
+		void trim();
+		void reset();
+		const nlohmann::json& parsed();
+
+		void go() { writing_ = true; just_written_ = false; }
+		void stop() { writing_ = false; }
+		void skip() { to_skip_ = true; }
+		void at(const std::string& key) { trim(); key_ = key; just_written_ = false; }
+		bool at() { return !key_.empty(); }
+		bool on() { return writing_ && at(); }
+		bool open() { return on() && !to_skip_; }
+		bool fed() { return at() && !val_()->empty(); }
+		bool fresh() { return !just_written_; }
+
 	private:
-		static nlohmann::json parsed_, parsing_;
-		static std::string key_;
-		static bool writing_;
-		static bool just_written_;
-		static bool to_skip_;
-		static std::string *val_()
+		nlohmann::json parsed_, parsing_;
+		std::string key_;
+		bool writing_ = false,
+		     just_written_ = false,
+		     to_skip_ = false;
+
+		std::string *val_()
 		{
 			if (parsing_[key_].is_null()) {
 				parsing_[key_] = "";
 			}
 			return parsing_[key_].get_ptr<std::string *>();
 		}
-		static void short_reset()
-		{
-			parsing_.clear();
-			key_.clear();
-			writing_ = false;
-			just_written_ = false;
-			to_skip_ = false;
-		}
-
-	public:
-		static void go() { writing_ = true; just_written_ = false; }
-		static void stop() { writing_ = false; }
-		static void skip() { to_skip_ = true; }
-		static void at(const std::string &key) { trim(); key_ = key; just_written_ = false; }
-		static bool at() { return !key_.empty(); }
-		static bool on() { return writing_ && at(); }
-		static bool open() { return on() && !to_skip_; }
-		static bool fed() { return at() && !val_()->empty(); }
-		static bool fresh() { return !just_written_; }
-
-		template <class StringType>
-		static void force_feed(StringType s)
-		{
-			if (at()) {
-				val_()->append(s);
-			}
-		}
-		static void force_feed(char c)
-		{
-			if (at()) {
-				val_()->push_back(c);
-			}
-		}
-
-		using token_t = Token<Symbol>;
-
-		static bool feed(const token_t& t)
-		{
-			if (open()) {
-				if (fed()) {
-					if (fresh()) {
-						force_feed(' ');
-					}
-					else if (t.leading_ws_count) {
-						force_feed<std::string>(std::string(t.leading_ws_count, ' '));
-					}
-				}
-				force_feed<const char *>(t.c_str());
-				just_written_ = true;
-			}
-			to_skip_ = false;
-			return fed();
-		}
-
-		static void trim()
-		{
-			if (at()) {
-				while (std::isspace(val_()->back())) {
-					val_()->pop_back();
-				}
-				if (val_()->empty()) {
-					parsing_.erase(key_);
-				}
-			}
-		}
-
-		static void reset()
-		{
-			parsed_.clear();
-			short_reset();
-		}
-
-		static nlohmann::json&& move() {
-			trim();
-			parsed_["functions"].push_back(std::move(parsing_));
-			short_reset();
-			return std::move(parsed_);
-		}
 };
+
+
+template <class StringType>
+inline void ParseFeeder::force_feed(const StringType& s)
+{
+	if (at()) {
+		val_()->append(s);
+	}
+}
+
+inline void ParseFeeder::force_feed(char c)
+{
+	if (at()) {
+		val_()->push_back(c);
+	}
+}
+
+inline bool ParseFeeder::feed(const ParseFeeder::token_t& t)
+{
+	if (open()) {
+		if (fed()) {
+			if (fresh()) {
+				force_feed(' ');
+			}
+			else if (t.leading_ws_count) {
+				force_feed(std::string(t.leading_ws_count, ' '));
+			}
+		}
+		force_feed(t.c_str());
+		just_written_ = true;
+	}
+	to_skip_ = false;
+	return fed();
+}
+
+inline void ParseFeeder::trim()
+{
+	if (at()) {
+		while (!val_()->empty() && std::isspace(val_()->back())) {
+			val_()->pop_back();
+		}
+		if (val_()->empty()) {
+			parsing_.erase(key_);
+		}
+	}
+}
+
+inline void ParseFeeder::reset()
+{
+	parsed_.clear();
+	parsing_.clear();
+	key_.clear();
+	writing_ = false;
+	just_written_ = false;
+	to_skip_ = false;
+}
+
+inline const nlohmann::json& ParseFeeder::parsed()
+{
+	trim();
+	if (!parsing_.is_null()) {
+		parsed_["functions"].push_back(std::move(parsing_));
+		parsing_.clear();
+	}
+	return parsed_;
+}
 
 } // core
 } // docgen
