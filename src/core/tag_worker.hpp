@@ -6,11 +6,9 @@
 namespace docgen {
 namespace core {
 
-struct TagParser_routines
+struct TagWorker_routines : private WorkerRoutine
 {
 	protected:
-		using routine_t = ParseWorker::SymbolHandler::routine_t;
-
 		static constexpr const routine_t on_tag_  = [](const token_t& t, ParseFeeder& f) {
 			f.at(t.content);
 			f.go();
@@ -18,10 +16,10 @@ struct TagParser_routines
 		};
 };
 
-class TagParser : public ParseWorker, private TagParser_routines
+class TagWorker : public ParseWorker, private TagWorker_routines
 {
 	public:
-		TagParser()
+		TagWorker()
 			: ParseWorker({ SymbolHandler(Symbol::TAGNAME, on_tag_) })
 		{}
 };

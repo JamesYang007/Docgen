@@ -6,10 +6,8 @@
 namespace docgen {
 namespace core {
 
-struct IgnoreParser_routines {
+struct IgnoreWorker_routines : private WorkerRoutine {
 	protected:
-		using routine_t = ParseWorker::SymbolHandler::routine_t;
-
 		static constexpr const routine_t on_start_ = [](const token_t&, ParseFeeder& f) {
 			f.stop();
 		};
@@ -18,9 +16,9 @@ struct IgnoreParser_routines {
 		};
 };
 
-class IgnoreParser : public ParseWorker, private IgnoreParser_routines {
+class IgnoreWorker : public ParseWorker, private IgnoreWorker_routines {
 	public:
-		IgnoreParser(symbol_t from, symbol_t ignore)
+		IgnoreWorker(symbol_t from, symbol_t ignore)
 			: ParseWorker {
 				SymbolHandler(from, on_start_),
 				SymbolHandler(ignore, on_stop_).neg()
