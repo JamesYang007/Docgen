@@ -27,7 +27,6 @@ enum class Symbol {
 // Compile-time mapping of strings to corresponding symbol
 static MAPBOX_ETERNAL_CONSTEXPR const auto symbol_map = 
     mapbox::eternal::map<Symbol, mapbox::eternal::string>({
-            {Symbol::NEWLINE, " "},
             {Symbol::SEMICOLON, ";"},
             {Symbol::STAR, "*"},
             {Symbol::OPEN_BRACE, "{"},
