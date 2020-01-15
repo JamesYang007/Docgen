@@ -24,10 +24,10 @@ class Parser
 
 		Parser()
 			: worker_ {
-				CommentWorker(Symbol::BEGIN_LINE_COMMENT, Symbol::NEWLINE, { TagWorker() }),
-				CommentWorker(Symbol::BEGIN_BLOCK_COMMENT, Symbol::END_BLOCK_COMMENT, {
+				CommentWorker(symbol_internal_t::BEGIN_LINE_COMMENT, symbol_internal_t::NEWLINE, { TagWorker() }),
+				CommentWorker(symbol_internal_t::BEGIN_BLOCK_COMMENT, symbol_internal_t::END_BLOCK_COMMENT, {
 					TagWorker(),
-					IgnoreWorker(Symbol::NEWLINE, Symbol::STAR).until_not()
+					IgnoreWorker(symbol_internal_t::NEWLINE, symbol_internal_t::STAR).until_not()
 				}),
 				FuncWorker()
 			}
