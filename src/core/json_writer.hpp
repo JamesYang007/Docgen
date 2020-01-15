@@ -7,7 +7,9 @@ namespace docgen {
 namespace core {
 
 /*
- * TokenType must have a member function .c_str() which returns a const char * string representation.
+ * TokenType must have a member function .c_str() which returns a const char * string representation,
+ * as well as member integer leading_ws_count for number of whitespace to prepend (when writing value
+ * to continuous session, i.e. writes not separated by stop_writing() or set_key())
  */
 template <class TokenType>
 class JSONWriter {
