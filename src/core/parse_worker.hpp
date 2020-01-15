@@ -3,34 +3,36 @@
 #include <string>
 #include <unordered_set>
 #include <vector>
-#include <nlohmann/json.hpp>
-#include "symbol.hpp"
-#include "token.hpp"
-#include "parse_feeder.hpp"
 #include "worker_routine.hpp"
 
 namespace docgen {
 namespace core {
 
 /*
- * A ParseWorker object holds an ordered array of SymbolHandler objects;
- * at any given point, only one of these SymbolHandlers is being handled.
+ * A ParseWorker object holds an ordered array of TokenHandler objects;
+ * at any given point, only one of these TokenHandlers is being handled.
  *
  * On every call to proc(), the current handler is checked for a match;
  * so long as it isn't matched (waiting to match), proc() will call for
- * the handler to handle_workers(), which will process based on
+ * the handler to proc_workers_(), which will process based on
  * its array of ParseWorker objects. When the current handler is matched,
- * proc() will call for the handler to handle_token(), which executes
- * the routine set by handler's passed function pointer; then, set to
- * move on to the next handler. On the last handler, this will wrap around
- * to the first, for so long as the passed "iters" limiter isn't
- * exceeded (unlimited by default); once it is, this ParseWorker is said
+ * proc() will execute the routine set by handler's passed function pointer;
+ * then, set to move on to the next handler. On the last handler,
+ * this will wrap around to the first, for so long as the passed "iters" limiter
+ * isn't exceeded (unlimited by default); once it is, this ParseWorker is said
  * to be in a "done" state, on which proc() will no longer execute.
  *
- * Said to be in a "working" state when handling a SymbolHandler after
- * the first; this only matters to a SymbolHandler which is holding
+ * Said to be in a "working" state when handling a TokenHandler after
+ * the first; this only matters to a TokenHandler which is holding
  * this ParseWorker.
+ *
+ * Object of type dest_t is passed by reference to proc(), and is ultimately
+ * passed down to specified worker routines.
+ *
+ * TokenType must be compliant with the requirements of std::unordered_set
  */
+
+template <class TokenType, class DestType>
 class ParseWorker 
 {
 	public:
@@ -38,86 +40,95 @@ class ParseWorker
 		using worker_arr_t = std::vector<worker_t>;
 		using worker_arr_init_t = std::initializer_list<worker_t>;
 
-		using symbol_t = Symbol;
-		using token_t = Token<symbol_t>;
+		using token_t = TokenType;
+		using dest_t = DestType;
 
 		/*
-		 * A SymbolHandler object holds an unordered set of symbols to match against (symbols_),
-		 * a function pointer which references a routine to execute on match (on_symbol_), and
+		 * A TokenHandler object holds an unordered set of symbols to match against (tokens_),
+		 * a function pointer which references a routine to execute on match (on_match_), and
 		 * an array of ParseWorker objects to process while still unmatched (workers_).
 		 *
-		 * If neg_ is set true, a given symbol will only match if it is not in symbols_.
+		 * If neg_ is set true, a given symbol will only match if it is not in tokens_.
 		 *
 		 * If working_ is not a nullptr, it indicates that one of the workers is currently in
 		 * the "working" state, and points to this worker; until it is done, only this worker
 		 * will be processed.
 		 */
-		class SymbolHandler
+		class TokenHandler
 		{
-		public:	
-			using symbol_set_t = std::unordered_set<symbol_t>;
-			using symbol_arr_init_t = std::initializer_list<symbol_t>;
+			friend class ParseWorker;
+			public:	
+				using token_set_t = std::unordered_set<token_t>;
+				using token_arr_init_t = std::initializer_list<token_t>;
 
-			using routine_t = WorkerRoutine::routine_t;
+				using routine_t = typename WorkerRoutine<ParseWorker>::routine_t;
 
-			SymbolHandler(symbol_arr_init_t s, routine_t on_s, worker_arr_init_t w={})
-				: symbols_(s), on_symbol_(on_s), workers_(w)
-			{}
+				TokenHandler(token_arr_init_t t, routine_t on_m, worker_arr_init_t w={})
+					: tokens_(t), on_match_(on_m), workers_(w)
+				{}
 
-			SymbolHandler(symbol_t s, routine_t on_s, worker_arr_init_t w={})
-				: symbols_{ s }, on_symbol_(on_s), workers_(w)
-			{}
+				TokenHandler(token_t t, routine_t on_m, worker_arr_init_t w={})
+					: tokens_{ t }, on_match_(on_m), workers_(w)
+				{}
 
-			SymbolHandler(worker_arr_init_t w)
-				: SymbolHandler(Symbol::END_OF_FILE, nullptr, w)
-			{}
+				TokenHandler(worker_arr_init_t w)
+					: TokenHandler(Symbol::END_OF_FILE, nullptr, std::move(w))
+				{}
 
-			SymbolHandler& neg() { neg_ = true; return *this; }
+				bool match(const token_t& t);
 
-			bool match(symbol_t s);
-			void handle_token(const token_t& t, ParseFeeder& f);
-			void handle_workers(const token_t& t, ParseFeeder& f);
-			void reset_workers();
+				TokenHandler& neg() { neg_ = true; return *this; }
+				void on_match(routine_t on_m) { on_match_ = on_m; }
 
-		private:
-			symbol_set_t symbols_;
-			routine_t on_symbol_;
-			worker_arr_t workers_;
+			private:
+				bool proc_workers_(const token_t& t, dest_t& f);
+				void reset_workers_();
 
-			worker_t *working_ = nullptr;
-			bool neg_ = false;
+				token_set_t tokens_;
+				routine_t on_match_;
+				worker_arr_t workers_;
+
+				worker_t *working_ = nullptr;
+				bool neg_ = false;
 		};
 
-		using handler_t = SymbolHandler;
+		using handler_t = TokenHandler;
 		using handler_arr_t = std::vector<handler_t>;
 		using handler_arr_init_t = std::initializer_list<handler_t>;
 
-		ParseWorker(handler_arr_init_t handlers, size_t iters=INF_ITERS)
-			: handlers_(handlers), iters_(iters)
+		ParseWorker(handler_arr_init_t handlers)
+			: handlers_(std::move(handlers))
 		{}
 
-		explicit ParseWorker(handler_t&& handler, size_t iters=INF_ITERS)
-			: handlers_{ std::move(handler) }, iters_(iters)
+		explicit ParseWorker(handler_t handler)
+			: handlers_{ std::move(handler) }
 		{}
 
-		ParseWorker(worker_arr_init_t workers, size_t iters=INF_ITERS)
-			: ParseWorker(SymbolHandler(workers), iters)
+		explicit ParseWorker(worker_arr_init_t workers)
+			: ParseWorker(TokenHandler(std::move(workers)))
 		{}
 
-		void proc(const token_t& t, ParseFeeder& f);
-		void reset();
+		bool proc(const token_t& t, dest_t& f);
+		void inject_worker(ParseWorker w, size_t offset=0);
+
+		ParseWorker& rewind() { handler_().reset_workers_(); handler_i_ = 0; return *this; }
+		ParseWorker& reset() { itered_ = 0; return rewind(); }
+		ParseWorker& block() { blocker_ = true; return *this; }
+		ParseWorker& limit(size_t iters) { iters_ = iters; return *this; }
+
+	protected:
+		handler_arr_t handlers_;
 
 	private:
-		handler_arr_t handlers_;
-		size_t iters_;
+		size_t iters_ = INF_ITERS;
+		bool blocker_ = false;
 
 		unsigned int handler_i_ = 0;
 		size_t itered_ = 0;
 
 		static constexpr size_t INF_ITERS = 0;
 
-		handler_t& handler_() { return handlers_[handler_i_]; }
-		void rewind_() { handler_i_ = 0; }
+		handler_t& handler_() { return handlers_[handler_i_ < handlers_.size() ? handler_i_ : 0]; }
 		bool done_() const { return handler_i_ == handlers_.size(); }
 		bool working_() const { return handler_i_ != 0 && !done_(); }
 		bool indefinite_() const { return iters_ == INF_ITERS; }
@@ -125,98 +136,102 @@ class ParseWorker
 
 /*
  * Processes based on the current handler.
+ * Returns true on blocking.
  */
-inline void ParseWorker::proc(const token_t& t, ParseFeeder& f)
+template <class TokenType, class DestType>
+inline bool ParseWorker<TokenType, DestType>::proc(const token_t& t, dest_t& d)
 {
 	if (done_()) {
-		return;
+		return false;
 	}
 
-	if (handler_().match(t.name)) {
-		handler_().handle_token(t, f);
+	if (handler_().proc_workers_(t, d)) {
+		return true;
+	}
 
-		handler_().reset_workers();
+	if (handler_().match(t)) {	
+		if (handler_().on_match_) {
+			handler_().on_match_(this, t, d);
+		}
+
+		handler_().reset_workers_();
 
 		++handler_i_;
 
 		if (done_()) {
 			if (indefinite_() || ++itered_ < iters_) {
-				rewind_();
+				rewind();
 			}
-			return;
 		}
-	}
-	else {
-		handler_().handle_workers(t, f);
+		return blocker_;
 	}
 
-	return;
+	return false;
 }
 
 /*
- * Reset to the originally constructed state
+ * Add worker to next TokenHandler (+ offset); wraps around if at end.
  */
-inline void ParseWorker::reset()
+template <class TokenType, class DestType>
+inline void ParseWorker<TokenType, DestType>::inject_worker(ParseWorker w, size_t offset)
 {
-	handler_().reset_workers();
-	rewind_();
-	itered_ = 0;
-}
-
-/*
- * Execute a routine by the on_symbol_ function pointer, if present.
- */
-inline void ParseWorker::SymbolHandler::handle_token(const token_t& t, ParseFeeder& f)
-{
-	if (on_symbol_) {
-		on_symbol_(t, f);
-	}
+	unsigned int i = handler_i_+1+offset < handlers_.size() ? handler_i_+1+offset : 0;
+	handlers_[i].workers_.push_back(std::move(w));
 }
 
 /*
  * Process all contained ParseWorker objects when none are "working";
  * if one is, process only that one until it is done.
+ * Returns true if any workers are blocking.
  */
-inline void ParseWorker::SymbolHandler::handle_workers(const token_t& t, ParseFeeder& f)
+template <class TokenType, class DestType>
+inline bool ParseWorker<TokenType, DestType>::TokenHandler::proc_workers_(const token_t& t, dest_t& d)
 {
+	bool blocked = false;
+
 	if (working_) {
-		working_->proc(t, f);
+		blocked = working_->proc(t, d);
 		if (!working_->working_()) {
-			working_ = nullptr;
-			for (worker_t& p : workers_) {
-				p.reset();
+			for (worker_t& w : workers_) {
+				w.rewind();	
 			}
+			working_ = nullptr;
 		}
 	}
 	if (!working_) {
+		bool blocked_temp = false;
 		for (worker_t& p : workers_) {
-			p.proc(t, f);
+			blocked = p.proc(t, d) ? true : blocked;
 			if (p.working_()) {
 				working_ = &p;
 				break;
 			}
 		}
 	}
+
+	return blocked;
 }
 
 /*
- * Reset all contained ParseWorker objects
+ * Reset all contained ParseWorker objects.
  */
-inline void ParseWorker::SymbolHandler::reset_workers()
+template <class TokenType, class DestType>
+inline void ParseWorker<TokenType, DestType>::TokenHandler::reset_workers_()
 {
-	for (worker_t& p : workers_) {
-		p.reset();
+	for (worker_t& w : workers_) {
+		w.reset();
 	}
 }
 
 /*
- * Match to a symbol based on whether or not it is contained within symbols_;
+ * Match to a symbol based on whether or not it is contained within tokens_;
  * if neg_ is true, this will match when the symbol is not contained.
  */
-inline bool ParseWorker::SymbolHandler::match(symbol_t s)
+template <class TokenType, class DestType>
+inline bool ParseWorker<TokenType, DestType>::TokenHandler::match(const token_t& t)
 {
 	return !neg_ ?
-		symbols_.find(s) != symbols_.end() : symbols_.find(s) == symbols_.end();
+		tokens_.find(t) != tokens_.end() : tokens_.find(t) == tokens_.end();
 }
 
 } // namespace core
