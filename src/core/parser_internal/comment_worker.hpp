@@ -7,7 +7,7 @@ namespace docgen {
 namespace core {
 namespace parser_internal {
 
-struct CommentWorker_routines : private routine_details_t
+struct CommentWorker_routines : private routine_details_internal_t
 {
 	private:
 		static constexpr const char *DEFAULT_KEY = "desc";
@@ -25,7 +25,7 @@ struct CommentWorker_routines : private routine_details_t
 		};
 };
 
-class CommentWorker : public worker_class_t, private CommentWorker_routines
+class CommentWorker : public worker_internal_t, private CommentWorker_routines
 {
 	public:
 		CommentWorker(token_t open, token_t close, worker_arr_init_t workers={})

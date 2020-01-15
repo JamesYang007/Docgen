@@ -33,7 +33,7 @@ class Parser
 			}
 		{}
 
-		using token_t = parser_internal::token_class_t;
+		using token_t = parser_internal::token_internal_t;
 		using token_arr_t = std::vector<token_t>;
 
 		void process(const token_arr_t& tokens);
@@ -41,8 +41,8 @@ class Parser
 		const nlohmann::json& parsed() { return writer_.stored(); }
 
 	private:	
-		parser_internal::worker_class_t worker_;
-		parser_internal::writer_class_t writer_;
+		parser_internal::worker_internal_t worker_;
+		parser_internal::writer_internal_t writer_;
 };
 
 inline void Parser::process(const token_arr_t& tokens)

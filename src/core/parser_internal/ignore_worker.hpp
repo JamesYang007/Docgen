@@ -6,7 +6,7 @@ namespace docgen {
 namespace core {
 namespace parser_internal {
 
-struct IgnoreWorker_routines : private routine_details_t
+struct IgnoreWorker_routines : private routine_details_internal_t
 {
 	protected:
 		static constexpr const routine_t on_start_ = [](worker_t *, const tok_t&, dest_t& writer) {
@@ -21,7 +21,7 @@ struct IgnoreWorker_routines : private routine_details_t
 		};
 };
 
-class IgnoreWorker : public worker_class_t, private IgnoreWorker_routines
+class IgnoreWorker : public worker_internal_t, private IgnoreWorker_routines
 {
 	public:
 		IgnoreWorker(token_t from, token_t until)
