@@ -71,7 +71,7 @@ class ParseWorker
 					: tokens_{ t }, on_match_(on_m), workers_(w)
 				{}
 
-				TokenHandler(worker_arr_init_t w)
+				explicit TokenHandler(worker_arr_init_t w)
 					: TokenHandler(Symbol::END_OF_FILE, nullptr, std::move(w))
 				{}
 
@@ -96,7 +96,7 @@ class ParseWorker
 		using handler_arr_t = std::vector<handler_t>;
 		using handler_arr_init_t = std::initializer_list<handler_t>;
 
-		ParseWorker(handler_arr_init_t handlers)
+		explicit ParseWorker(handler_arr_init_t handlers)
 			: handlers_(std::move(handlers))
 		{}
 
