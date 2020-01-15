@@ -1,7 +1,7 @@
 #pragma once
 
-#include "docgen_worker.hpp"
-#include "ignore_worker.hpp"
+#include "core/parser_internal/docgen_worker.hpp"
+#include "core/parser_internal/ignore_worker.hpp"
 
 namespace docgen {
 namespace core {

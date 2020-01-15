@@ -1,6 +1,6 @@
 #pragma once
 
-#include "docgen_worker.hpp"
+#include "core/parser_internal/docgen_worker.hpp"
 
 namespace docgen {
 namespace core {

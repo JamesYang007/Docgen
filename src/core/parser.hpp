@@ -3,13 +3,13 @@
 #include <vector>
 #include <initializer_list>
 #include <nlohmann/json.hpp>
-#include "json_writer.hpp"
-#include "parse_worker.hpp"
-#include "parser_internal/docgen_worker.hpp"
-#include "parser_internal/comment_worker.hpp"
-#include "parser_internal/func_worker.hpp"
-#include "parser_internal/ignore_worker.hpp"
-#include "parser_internal/tag_worker.hpp"
+#include "core/json_writer.hpp"
+#include "core/parse_worker.hpp"
+#include "core/parser_internal/docgen_worker.hpp"
+#include "core/parser_internal/comment_worker.hpp"
+#include "core/parser_internal/func_worker.hpp"
+#include "core/parser_internal/ignore_worker.hpp"
+#include "core/parser_internal/tag_worker.hpp"
 
 namespace docgen {
 namespace core {
