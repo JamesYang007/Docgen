@@ -18,11 +18,11 @@ struct FuncWorker_routines : private routine_details_t
 			writer.set_key(DEC_KEY);	
 			writer.start_writing();
 		};
-		static constexpr const routine_t on_done_ = [](worker_t *worker, const tok_t& t, dest_t& writer) {
+		static constexpr const routine_t on_done_ = [](worker_t *worker, const tok_t& token, dest_t& writer) {
 			writer.stop_writing();
 			writer.clear_key();
 			writer.store(FUNCS_KEY);
-			if (t.name == Symbol::SEMICOLON) {
+			if (token.name == Symbol::SEMICOLON) {
 				worker->reset();
 			}
 		};

@@ -10,9 +10,9 @@ template <class WorkerType>
 struct WorkerRoutine
 {
 	using worker_t = WorkerType;
-	using tok_t = typename WorkerType::token_t;
-	using dest_t = typename WorkerType::dest_t;
-	using routine_t = void (*)(WorkerType *, const token_t&, dest_t&);
+	using tok_t = typename worker_t::token_t;
+	using dest_t = typename worker_t::dest_t;
+	using routine_t = void (*)(worker_t *, const token_t&, dest_t&);
 };
 
 } // namespace core
