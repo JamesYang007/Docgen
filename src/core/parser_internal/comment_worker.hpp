@@ -29,7 +29,7 @@ class CommentWorker : public worker_internal_t, private CommentWorker_routines
 {
 	public:
 		CommentWorker(token_t open, token_t close, worker_arr_init_t workers={})
-			: ParseWorker {
+			: worker_internal_t {
 				TokenHandler(open, on_open_),
 				TokenHandler(close, on_close_, workers)
 			}

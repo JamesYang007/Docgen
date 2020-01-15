@@ -25,7 +25,7 @@ class IgnoreWorker : public worker_internal_t, private IgnoreWorker_routines
 {
 	public:
 		IgnoreWorker(token_t from, token_t until)
-			: ParseWorker {
+			: worker_internal_t {
 				TokenHandler(from, on_start_),
 				TokenHandler(until, on_stop_)
 			}
