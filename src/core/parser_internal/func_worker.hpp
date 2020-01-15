@@ -32,7 +32,7 @@ class FuncWorker : public worker_internal_t, private FuncWorker_routines
 {
 	public:
 		FuncWorker()
-			: ParseWorker {
+			: worker_internal_t {
 				TokenHandler(symbol_internal_t::TEXT, on_dec_),
 				TokenHandler({ symbol_internal_t::SEMICOLON, symbol_internal_t::OPEN_BRACE }, on_done_, {
 					IgnoreWorker(symbol_internal_t::NEWLINE, symbol_internal_t::TEXT)
