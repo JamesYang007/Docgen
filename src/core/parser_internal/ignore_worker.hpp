@@ -6,26 +6,31 @@ namespace docgen {
 namespace core {
 namespace parser_internal {
 
-struct IgnoreWorker_routines : private routine_details_internal_t
+struct IgnoreWorker_routines : private routine_details_t
 {
 	protected:
-		static constexpr const routine_t on_start_ = [](worker_t *, const tok_t&, dest_t& writer) {
+		using token_t = routine_details_t::token_t;
+
+		static constexpr const routine_t on_start_ = [](worker_t *, const token_t&, dest_t& writer) {
 			writer.stop_writing();
 		};
-		static constexpr const routine_t on_start_recurse_ = [](worker_t *worker, const tok_t& t, dest_t& d) {
+		static constexpr const routine_t on_start_recurse_ = [](worker_t *worker, const token_t& t, dest_t& d) {
 			on_start_(worker, t, d);
 			worker->inject_worker(ParseWorker(*worker).reset());
 		};
-		static constexpr const routine_t on_stop_ = [](worker_t *, const tok_t&, dest_t& writer) {
+		static constexpr const routine_t on_stop_ = [](worker_t *, const token_t&, dest_t& writer) {
 			writer.start_writing();
 		};
 };
 
-class IgnoreWorker : public worker_internal_t, private IgnoreWorker_routines
+class IgnoreWorker : public worker_t, private IgnoreWorker_routines
 {
 	public:
+		using worker_t = parser_internal::worker_t;
+		using token_t = typename worker_t::token_t;
+
 		IgnoreWorker(token_t from, token_t until)
-			: worker_internal_t {
+			: worker_t {
 				TokenHandler(from, on_start_),
 				TokenHandler(until, on_stop_)
 			}

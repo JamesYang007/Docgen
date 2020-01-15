@@ -21,7 +21,7 @@ class Parser
 		using FuncWorker = parser_internal::FuncWorker;
 		using IgnoreWorker = parser_internal::IgnoreWorker;
 		using TagWorker = parser_internal::TagWorker;
-		using symbol_t = parser_internal::symbol_internal_t;
+		using symbol_t = parser_internal::symbol_t;
 
 		Parser()
 			: worker_ {
@@ -34,7 +34,7 @@ class Parser
 			}
 		{}
 
-		using token_t = parser_internal::token_internal_t;
+		using token_t = parser_internal::token_t;
 		using token_arr_t = std::vector<token_t>;
 
 		void process(const token_arr_t& tokens);
@@ -42,8 +42,8 @@ class Parser
 		const nlohmann::json& parsed() { return writer_.stored(); }
 
 	private:	
-		parser_internal::worker_internal_t worker_;
-		parser_internal::writer_internal_t writer_;
+		parser_internal::worker_t worker_;
+		parser_internal::writer_t writer_;
 };
 
 inline void Parser::process(const token_arr_t& tokens)
