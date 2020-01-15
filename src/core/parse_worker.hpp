@@ -26,7 +26,7 @@ namespace core {
  * the first; this only matters to a TokenHandler which is holding
  * this ParseWorker.
  *
- * Object of type dest_t is passed by reference to proc(), and is ultimately
+ * Object of type DestType is passed by reference to proc(), and is ultimately
  * passed down to specified worker routines.
  *
  * TokenType must be compliant with the requirements of std::unordered_set
