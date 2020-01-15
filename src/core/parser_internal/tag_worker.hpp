@@ -6,23 +6,27 @@ namespace docgen {
 namespace core {
 namespace parser_internal {
 
-struct TagWorker_routines : private routine_details_internal_t
+struct TagWorker_routines : private routine_details_t
 {
 	protected:
-		static constexpr const routine_t on_tag_  = [](worker_t *, const tok_t& t, dest_t& writer) {
+		using token_t = routine_details_t::token_t;
+
+		static constexpr const routine_t on_tag_  = [](worker_t *, const token_t& t, dest_t& writer) {
 			writer.set_key(t.content);
 			writer.start_writing();
 			writer.skip_write();
 		};
 };
 
-class TagWorker : public worker_internal_t, private TagWorker_routines
+class TagWorker : public worker_t, private TagWorker_routines
 {
 	public:
+		using worker_t = parser_internal::worker_t;
+
 		TagWorker()
-			: worker_internal_t {
+			: worker_t {
 				TokenHandler({
-					symbol_internal_t::TAGNAME
+					symbol_t::TAGNAME
 				}, on_tag_)
 			}
 		{}
