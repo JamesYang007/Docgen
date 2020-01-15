@@ -100,21 +100,18 @@ class ParseWorker
 			: handlers_(std::move(handlers))
 		{}
 
-		explicit ParseWorker(handler_t handler)
-			: handlers_{ std::move(handler) }
-		{}
-
 		explicit ParseWorker(worker_arr_init_t workers)
-			: ParseWorker(TokenHandler(std::move(workers)))
+			: ParseWorker({ TokenHandler(std::move(workers)) })
 		{}
 
 		bool proc(const token_t& t, dest_t& f);
-		void inject_worker(ParseWorker w, size_t offset=0);
 
 		ParseWorker& rewind() { handler_().reset_workers_(); handler_i_ = 0; return *this; }
 		ParseWorker& reset() { itered_ = 0; return rewind(); }
 		ParseWorker& block() { blocker_ = true; return *this; }
 		ParseWorker& limit(size_t iters) { iters_ = iters; return *this; }
+		void inject_worker(const ParseWorker& w, size_t offset=0) { handler_(handler_i_+1+offset).workers_.push_back(w); }	
+		void inject_worker(ParseWorker&& w, size_t offset=0) { handler_(handler_i_+1+offset).workers_.push_back(std::move(w)); }
 
 	protected:
 		handler_arr_t handlers_;
@@ -128,7 +125,8 @@ class ParseWorker
 
 		static constexpr size_t INF_ITERS = 0;
 
-		handler_t& handler_() { return handlers_[handler_i_ < handlers_.size() ? handler_i_ : 0]; }
+		handler_t& handler_(size_t i) { return handlers_[i % handlers_.size()]; }
+		handler_t& handler_() { return handler_(handler_i_); }
 		bool done_() const { return handler_i_ == handlers_.size(); }
 		bool working_() const { return handler_i_ != 0 && !done_(); }
 		bool indefinite_() const { return iters_ == INF_ITERS; }
@@ -167,16 +165,6 @@ inline bool ParseWorker<TokenType, DestType>::proc(const token_t& t, dest_t& d)
 	}
 
 	return false;
-}
-
-/*
- * Add worker to next TokenHandler (+ offset); wraps around if at end.
- */
-template <class TokenType, class DestType>
-inline void ParseWorker<TokenType, DestType>::inject_worker(ParseWorker w, size_t offset)
-{
-	unsigned int i = handler_i_+1+offset < handlers_.size() ? handler_i_+1+offset : 0;
-	handlers_[i].workers_.push_back(std::move(w));
 }
 
 /*

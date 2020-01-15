@@ -20,9 +20,11 @@ class TagWorker : public worker_internal_t, private TagWorker_routines
 {
 	public:
 		TagWorker()
-			: worker_internal_t ( TokenHandler({
-				symbol_internal_t::TAGNAME
-			}, on_tag_))
+			: worker_internal_t {
+				TokenHandler({
+					symbol_internal_t::TAGNAME
+				}, on_tag_)
+			}
 		{}
 };
 
