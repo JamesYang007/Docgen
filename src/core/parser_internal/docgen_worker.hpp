@@ -1,10 +1,10 @@
 #pragma once
 
-#include "../symbol.hpp"
-#include "../token.hpp"
-#include "../json_writer.hpp"
-#include "../parse_worker.hpp"
-#include "../worker_routine.hpp"
+#include "core/symbol.hpp"
+#include "core/token.hpp"
+#include "core/json_writer.hpp"
+#include "core/parse_worker.hpp"
+#include "core/worker_routine.hpp"
 
 namespace docgen {
 namespace core {

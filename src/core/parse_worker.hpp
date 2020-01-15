@@ -3,7 +3,7 @@
 #include <string>
 #include <unordered_set>
 #include <vector>
-#include "worker_routine.hpp"
+#include "core/worker_routine.hpp"
 
 namespace docgen {
 namespace core {
