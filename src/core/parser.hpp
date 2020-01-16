@@ -52,7 +52,7 @@ inline void Parser::process(const token_arr_t& tokens)
 
 	for (const token_t& token : tokens) {
 		worker_.proc(token, writer_);
-		writer_.feed(token);
+		writer_.feed(token.c_str(), token.leading_ws_count);
 	}
 }
 

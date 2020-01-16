@@ -14,7 +14,7 @@ using symbol_t = Symbol;
 
 using token_t = Token<symbol_t>;
 
-using writer_t = JSONWriter<token_t>;
+using writer_t = JSONWriter;
 
 using worker_t = ParseWorker<token_t, writer_t>;
 

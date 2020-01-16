@@ -6,20 +6,13 @@
 namespace docgen {
 namespace core {
 
-/*
- * TokenType must have a member function .c_str() which returns a const char * string representation,
- * as well as member integer leading_ws_count for number of whitespace to prepend (when writing value
- * to continuous session, i.e. writes not separated by stop_writing() or set_key())
- */
-template <class TokenType>
 class JSONWriter {
 	public:
-		using token_t = TokenType;
-
 		template <class StringType>
 		void write(const StringType& s);
 		void write(char c);
-		void feed(const token_t& t);
+		template <class StringType>
+		void feed(const StringType& s, size_t suggested_prepend=1);
 		void trim_written();
 		void store(const char *parent_key);
 		void reset();
@@ -33,7 +26,7 @@ class JSONWriter {
 		bool writing() { return writing_ && key_set(); }
 		bool skipping() { return to_skip_; }
 		bool written() { return key_set() && !val_()->empty(); }
-		bool just_written() { return !just_written_; }
+		bool just_written() { return just_written_; }
 		const nlohmann::json& stored() { return stored_; }
 
 	private:
@@ -53,45 +46,47 @@ class JSONWriter {
 };
 
 
-template <class TokenType>
 template <class StringType>
-inline void JSONWriter<TokenType>::write(const StringType& s)
+inline void JSONWriter::write(const StringType& s)
 {
 	if (key_set()) {
 		val_()->append(s);
 	}
 }
 
-template <class TokenType>
-inline void JSONWriter<TokenType>::write(char c)
+inline void JSONWriter::write(char c)
 {
 	if (key_set()) {
 		val_()->push_back(c);
 	}
 }
 
-template <class TokenType>
-inline void JSONWriter<TokenType>::feed(const JSONWriter::token_t& t)
+/*
+ * Feeds a passed string to be written to the JSON if the current status allows for it;
+ * suggested_prepend is the count of whitespaces to be prepended if formatting conditions
+ * are met (i.e. if anything has been written since last stop or key change).
+ */
+template <class StringType>
+inline void JSONWriter::feed(const StringType& s, size_t suggested_prepend)
 {
 	if (writing()){
 		if (!skipping()) {
 			if (written()) {
-				if (just_written()) {
+				if (!just_written()) {
 					write(' ');
 				}
-				else if (t.leading_ws_count) {
-					write(std::string(t.leading_ws_count, ' '));
+				else if (suggested_prepend) {
+					write(std::string(suggested_prepend, ' '));
 				}
 			}
-			write(t.c_str());
+			write(s);
 			just_written_ = true;
 		}
 		to_skip_ = false;
 	}
 }
 
-template <class TokenType>
-inline void JSONWriter<TokenType>::trim_written()
+inline void JSONWriter::trim_written()
 {
 	if (key_set()) {
 		while (!val_()->empty() && std::isspace(val_()->back())) {
@@ -103,8 +98,7 @@ inline void JSONWriter<TokenType>::trim_written()
 	}
 }
 
-template <class TokenType>
-inline void JSONWriter<TokenType>::store(const char *parent_key)
+inline void JSONWriter::store(const char *parent_key)
 {
 	if (!active_.is_null()) {
 		trim_written();
@@ -113,8 +107,7 @@ inline void JSONWriter<TokenType>::store(const char *parent_key)
 	}
 }
 
-template <class TokenType>
-inline void JSONWriter<TokenType>::reset()
+inline void JSONWriter::reset()
 {
 	stored_.clear();
 	active_.clear();
