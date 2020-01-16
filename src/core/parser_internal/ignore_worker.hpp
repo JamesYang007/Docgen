@@ -32,7 +32,7 @@ class IgnoreWorker : public worker_t
 			};
 			static constexpr const routine_t on_start_recurse_ = [](worker_t *worker, const token_t& t, dest_t& d) {
 				on_start_(worker, t, d);
-				worker->inject_worker(ParseWorker(*worker).reset());
+				worker->handler_next().inject_worker(ParseWorker(*worker).reset());
 			};
 			static constexpr const routine_t on_stop_ = [](worker_t *, const token_t&, dest_t& writer) {
 				writer.start_writing();
