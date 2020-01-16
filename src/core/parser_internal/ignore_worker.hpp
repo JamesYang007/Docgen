@@ -12,7 +12,7 @@ class IgnoreWorker : public worker_t
 		using worker_t = parser_internal::worker_t;
 		using token_t = typename worker_t::token_t;
 
-		IgnoreWorker(token_t from, token_t until)
+		IgnoreWorker(const token_t& from, const token_t& until)
 			: worker_t {
 				TokenHandler(from, Routines::on_start_),
 				TokenHandler(until, Routines::on_stop_)
