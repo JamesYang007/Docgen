@@ -13,7 +13,7 @@ class CommentWorker : public worker_t
 		using worker_t = typename parser_internal::worker_t;
 		using token_t = typename worker_t::token_t;
 
-		CommentWorker(token_t open, token_t close, worker_arr_init_t workers={})
+		CommentWorker(const token_t& open, const token_t& close, worker_arr_init_t workers={})
 			: worker_t {
 				TokenHandler(open, Routines::on_open_),
 				TokenHandler(close, Routines::on_close_, workers)
