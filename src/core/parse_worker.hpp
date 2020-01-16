@@ -79,6 +79,8 @@ class ParseWorker
 
 				TokenHandler& neg() { neg_ = true; return *this; }
 				void on_match(routine_t on_m) { on_match_ = on_m; }
+				void inject_worker(const worker_t& w) { workers_.push_back(w); }	
+				void inject_worker(worker_t&& w) { workers_.push_back(std::move(w)); }
 
 			private:
 				bool proc_workers_(const token_t& t, dest_t& f);
@@ -106,12 +108,13 @@ class ParseWorker
 
 		bool proc(const token_t& t, dest_t& f);
 
-		ParseWorker& rewind() { handler_().reset_workers_(); handler_i_ = 0; return *this; }
+		ParseWorker& rewind() { handler().reset_workers_(); handler_i_ = 0; return *this; }
 		ParseWorker& reset() { itered_ = 0; return rewind(); }
 		ParseWorker& block() { blocker_ = true; return *this; }
 		ParseWorker& limit(size_t iters) { iters_ = iters; return *this; }
-		void inject_worker(const ParseWorker& w, size_t offset=0) { handler_(handler_i_+1+offset).workers_.push_back(w); }	
-		void inject_worker(ParseWorker&& w, size_t offset=0) { handler_(handler_i_+1+offset).workers_.push_back(std::move(w)); }
+		handler_t& handler(size_t offset) { return handlers_[(handler_i_ + offset) % handlers_.size()]; }
+		handler_t& handler() { return handler(0); }
+		handler_t& handler_next() { return handler(1); }
 
 	protected:
 		handler_arr_t handlers_;
@@ -125,8 +128,6 @@ class ParseWorker
 
 		static constexpr size_t INF_ITERS = 0;
 
-		handler_t& handler_(size_t i) { return handlers_[i % handlers_.size()]; }
-		handler_t& handler_() { return handler_(handler_i_); }
 		bool done_() const { return handler_i_ == handlers_.size(); }
 		bool working_() const { return handler_i_ != 0 && !done_(); }
 		bool indefinite_() const { return iters_ == INF_ITERS; }
@@ -143,16 +144,16 @@ inline bool ParseWorker<TokenType, DestType>::proc(const token_t& t, dest_t& d)
 		return false;
 	}
 
-	if (handler_().proc_workers_(t, d)) {
+	if (handler().proc_workers_(t, d)) {
 		return true;
 	}
 
-	if (handler_().match(t)) {	
-		if (handler_().on_match_) {
-			handler_().on_match_(this, t, d);
+	if (handler().match(t)) {	
+		if (handler().on_match_) {
+			handler().on_match_(this, t, d);
 		}
 
-		handler_().reset_workers_();
+		handler().reset_workers_();
 
 		++handler_i_;
 
