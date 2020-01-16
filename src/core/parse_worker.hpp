@@ -67,7 +67,7 @@ class ParseWorker
 					: tokens_(t), on_match_(on_m), workers_(w)
 				{}
 
-				TokenHandler(token_t t, routine_t on_m, worker_arr_init_t w={})
+				TokenHandler(const token_t& t, routine_t on_m, worker_arr_init_t w={})
 					: tokens_{ t }, on_match_(on_m), workers_(w)
 				{}
 
