@@ -8,6 +8,7 @@
 #include <memory>
 #include <nlohmann/json.hpp>
 #include "exceptions/exceptions.hpp"
+#include "parse_file.hpp"
 
 using namespace docgen;
 
@@ -97,7 +98,10 @@ static inline void to_parsed()
 		throw exceptions::control_flow_error("global var 'files_src_paths' not set for routine 'to_parsed'");
 	}
 
-	// TODO parse files from global NULL-terminated list files_src_paths and write information to json parsed
+	while (*files_src_paths) {
+		parse_file(*files_src_paths++, parsed);
+		// TODO handle directories
+	}
 }
 
 /*
