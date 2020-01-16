@@ -1,8 +1,6 @@
 #pragma once
 
 #include <nlohmann/json.hpp>
-#include "core/lexer.hpp"
-#include "core/parser.hpp"
 
 namespace docgen {
 
