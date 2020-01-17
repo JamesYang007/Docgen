@@ -27,7 +27,7 @@ class JSONWriter {
 		bool skipping() { return to_skip_; }
 		bool written() { return key_set() && !val_()->empty(); }
 		bool just_written() { return just_written_; }
-		const nlohmann::json& stored() { return stored_; }
+		nlohmann::json& stored() { return stored_; }
 
 	private:
 		nlohmann::json stored_, active_;

@@ -39,7 +39,7 @@ class Parser
 
 		void process(const token_arr_t& tokens);
 
-		const nlohmann::json& parsed() { return writer_.stored(); }
+		nlohmann::json& parsed() { return writer_.stored(); }
 
 	private:	
 		parser_internal::worker_t worker_;
