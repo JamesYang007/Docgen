@@ -31,9 +31,8 @@ namespace core {
  *
  * TokenType must be compliant with the requirements of std::unordered_set
  */
-
 template <class TokenType, class DestType>
-class ParseWorker 
+class ParseWorker
 {
 	public:
 		using worker_t = ParseWorker;
@@ -61,7 +60,7 @@ class ParseWorker
 				using token_set_t = std::unordered_set<token_t>;
 				using token_arr_init_t = std::initializer_list<token_t>;
 
-				using routine_t = typename WorkerRoutine<ParseWorker>::routine_t;
+				using routine_t = typename WorkerRoutine<worker_t>::routine_t;
 
 				TokenHandler(token_arr_init_t t, routine_t on_m, worker_arr_init_t w={})
 					: tokens_(t), on_match_(on_m), workers_(w)
@@ -71,25 +70,39 @@ class ParseWorker
 					: tokens_{ t }, on_match_(on_m), workers_(w)
 				{}
 
+				TokenHandler(token_t&& t, routine_t on_m, worker_arr_init_t w={})
+					: on_match_(on_m), workers_(w)
+				{
+					tokens_.insert(std::move(t));
+				}
+
 				explicit TokenHandler(worker_arr_init_t w)
-					: TokenHandler(Symbol::END_OF_FILE, nullptr, std::move(w))
+					: TokenHandler(Symbol::END_OF_FILE, nullptr, w)
 				{}
 
 				bool match(const token_t& t);
 
 				TokenHandler& neg() { neg_ = true; return *this; }
+				const token_t& token() { return *tokens_.begin(); }
+				size_t tolerance() { return match_tolerance_; }
+				void tolerance(size_t t) { match_tolerance_ = t; }
 				void on_match(routine_t on_m) { on_match_ = on_m; }
+				bool done() { return match_counter_ > match_tolerance_; }
 				void inject_worker(const worker_t& w) { workers_.push_back(w); }	
 				void inject_worker(worker_t&& w) { workers_.push_back(std::move(w)); }
+				void inject_token(const token_t& t) { tokens_.insert(t); }
+				void inject_token(token_t&& t) { tokens_.insert(std::move(t)); }
 
 			private:
 				bool proc_workers_(const token_t& t, dest_t& f);
-				void reset_workers_();
+				void reset_();
 
 				token_set_t tokens_;
 				routine_t on_match_;
 				worker_arr_t workers_;
+				size_t match_counter_ = 0;
 
+				size_t match_tolerance_ = 0;
 				worker_t *working_ = nullptr;
 				bool neg_ = false;
 		};
@@ -108,13 +121,15 @@ class ParseWorker
 
 		bool proc(const token_t& t, dest_t& f);
 
-		ParseWorker& rewind() { handler().reset_workers_(); handler_i_ = 0; return *this; }
+		ParseWorker& rewind() { handler().reset_(); handler_i_ = 0; return *this; }
 		ParseWorker& reset() { itered_ = 0; return rewind(); }
 		ParseWorker& block() { blocker_ = true; return *this; }
 		ParseWorker& limit(size_t iters) { iters_ = iters; return *this; }
-		handler_t& handler(size_t offset) { return handlers_[(handler_i_ + offset) % handlers_.size()]; }
+		handler_t& handler_at(size_t i) { return handlers_[i % handlers_.size()]; }
+		handler_t& handler(size_t offset) { return handler_at(handler_i_ + offset); }
 		handler_t& handler() { return handler(0); }
 		handler_t& handler_next() { return handler(1); }
+		void stall() { stalling_ = true; }
 
 	protected:
 		handler_arr_t handlers_;
@@ -125,6 +140,7 @@ class ParseWorker
 
 		unsigned int handler_i_ = 0;
 		size_t itered_ = 0;
+		bool stalling_ = false;
 
 		static constexpr size_t INF_ITERS = 0;
 
@@ -153,15 +169,18 @@ inline bool ParseWorker<TokenType, DestType>::proc(const token_t& t, dest_t& d)
 			handler().on_match_(this, t, d);
 		}
 
-		handler().reset_workers_();
+		if (handler().done() && !stalling_) {
+			handler().reset_();
 
-		++handler_i_;
+			++handler_i_;
 
-		if (done_()) {
-			if (indefinite_() || ++itered_ < iters_) {
-				rewind();
+			if (done_()) {
+				if (indefinite_() || ++itered_ < iters_) {
+					rewind();
+				}
 			}
 		}
+		stalling_ = false;
 		return blocker_;
 	}
 
@@ -205,11 +224,12 @@ inline bool ParseWorker<TokenType, DestType>::TokenHandler::proc_workers_(const 
  * Reset all contained ParseWorker objects.
  */
 template <class TokenType, class DestType>
-inline void ParseWorker<TokenType, DestType>::TokenHandler::reset_workers_()
+inline void ParseWorker<TokenType, DestType>::TokenHandler::reset_()
 {
 	for (worker_t& w : workers_) {
 		w.reset();
 	}
+	match_counter_ = 0;
 }
 
 /*
@@ -219,8 +239,11 @@ inline void ParseWorker<TokenType, DestType>::TokenHandler::reset_workers_()
 template <class TokenType, class DestType>
 inline bool ParseWorker<TokenType, DestType>::TokenHandler::match(const token_t& t)
 {
-	return !neg_ ?
-		tokens_.find(t) != tokens_.end() : tokens_.find(t) == tokens_.end();
+	if (!neg_ ? tokens_.find(t) != tokens_.end() : tokens_.find(t) == tokens_.end()) {
+		++match_counter_;
+		return true;
+	}
+	return false;
 }
 
 } // namespace core
