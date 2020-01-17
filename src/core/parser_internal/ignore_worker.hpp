@@ -19,8 +19,8 @@ class IgnoreWorker : public worker_t
 			}
 		{}
 
-		IgnoreWorker& recursive() { handlers_[0].on_match(Routines::on_start_recurse_); return *this; }
-		IgnoreWorker& until_not() { handlers_[1].neg(); return *this; }
+		IgnoreWorker& balanced() { handler_at(1).on_match(Routines::on_stop_balanced_); handler_at(1).inject_token(handler_at(0).token()); return *this; }
+		IgnoreWorker& until_not() { handler_at(1).neg(); return *this; }
 
 	private:
 		struct Routines : private routine_details_t
@@ -30,12 +30,16 @@ class IgnoreWorker : public worker_t
 			static constexpr const routine_t on_start_ = [](worker_t *, const token_t&, dest_t& writer) {
 				writer.stop_writing();
 			};
-			static constexpr const routine_t on_start_recurse_ = [](worker_t *worker, const token_t& t, dest_t& d) {
-				on_start_(worker, t, d);
-				worker->handler_next().inject_worker(ParseWorker(*worker).reset());
-			};
 			static constexpr const routine_t on_stop_ = [](worker_t *, const token_t&, dest_t& writer) {
 				writer.start_writing();
+			};
+			static constexpr const routine_t on_stop_balanced_ = [](worker_t *worker, const token_t& token, dest_t& d) {
+				if (token == worker->handler_at(0).token()) {
+					worker_t::handler_t& close_handler = worker->handler_at(1);
+					close_handler.tolerance(close_handler.tolerance() + 2);
+					return;
+				}
+				on_stop_(worker, token, d);
 			};
 		};
 };
