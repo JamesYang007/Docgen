@@ -77,7 +77,7 @@ class bad_source : public exception
 {
 	public:
 		bad_source() noexcept
-			: exception("specified source(s) did not contain information for Docgen documentation generation")
+			: exception("no pertinent information was parsed; please ensure your files follow Docgen formatting guidelines")
 		{}
 };
 
