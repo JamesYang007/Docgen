@@ -17,6 +17,8 @@ void parse_file(const char *path, nlohmann::json& parsed)
 	core::Lexer lexer(file);
 	lexer.process();
 
+	fclose(file);
+
 	core::Parser parser;
 	parser.process(lexer.get_tokens());
 
@@ -24,8 +26,6 @@ void parse_file(const char *path, nlohmann::json& parsed)
 		parsed.push_back(std::move(parser.parsed()));
 		parsed.back()["name"] = path;
 	}
-
-	fclose(file);
 }
 
 } // namespace docgen
