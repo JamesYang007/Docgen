@@ -11,7 +11,7 @@ void parse_file(const char *path, nlohmann::json& parsed)
 {
 	FILE *file = fopen(path, "r");
 	if (file == nullptr) {
-		throw exceptions::system_error("failed to open file at path '" + std::string(path) + '\'');
+		throw exceptions::file_open_error(path);
 	}
 
 	core::Lexer lexer(file);
@@ -20,8 +20,10 @@ void parse_file(const char *path, nlohmann::json& parsed)
 	core::Parser parser;
 	parser.process(lexer.get_tokens());
 
-	parsed.push_back(std::move(parser.parsed()));
-	parsed.back()["name"] = path;
+	if (!parser.parsed().is_null()) {
+		parsed.push_back(std::move(parser.parsed()));
+		parsed.back()["name"] = path;
+	}
 
 	fclose(file);
 }
