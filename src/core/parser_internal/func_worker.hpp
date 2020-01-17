@@ -19,7 +19,7 @@ class FuncWorker : public worker_t
 					IgnoreWorker(symbol_t::NEWLINE, symbol_t::TEXT)
 				}),
 				TokenHandler(symbol_t::CLOSE_BRACE, nullptr, {
-					IgnoreWorker(symbol_t::OPEN_BRACE, symbol_t::CLOSE_BRACE).recursive().block()
+					IgnoreWorker(symbol_t::OPEN_BRACE, symbol_t::CLOSE_BRACE).balanced().block()
 				})
 			}
 		{}
@@ -33,15 +33,20 @@ class FuncWorker : public worker_t
 			using token_t = routine_details_t::token_t;
 
 			static constexpr const routine_t on_dec_ = [](worker_t *, const token_t&, dest_t& writer) {
-				writer.set_key(DEC_KEY);	
-				writer.start_writing();
+				if (writer.key_set()) {
+					writer.set_key(DEC_KEY);	
+					writer.start_writing();
+				}
 			};
 			static constexpr const routine_t on_done_ = [](worker_t *worker, const token_t& token, dest_t& writer) {
 				writer.stop_writing();
-				writer.clear_key();
-				writer.store(FUNCS_KEY);
-				if (token.name == symbol_t::SEMICOLON) {
-					worker->reset();
+				if (writer.key_set()) {
+					writer.clear_key();
+					writer.store(FUNCS_KEY);
+				}
+				if (token == symbol_t::SEMICOLON) {
+					worker->rewind();
+					worker->stall();
 				}
 			};
 		};
