@@ -87,9 +87,8 @@ class ParseWorker
 				size_t tolerance() { return match_tolerance_; }
 				void tolerance(size_t t) { match_tolerance_ = t; }
 				void on_match(routine_t on_m) { on_match_ = on_m; }
-				bool done() { return match_counter_ > match_tolerance_; }
-				void inject_worker(const worker_t& w) { workers_.push_back(w); }	
-				void inject_worker(worker_t&& w) { workers_.push_back(std::move(w)); }
+				bool done() { return match_counter_ >= match_tolerance_ }
+				bool timeout() { nomatch_timeout_ == INF_ITERS ? false : nomatch_counter_ >= nomatch_timeout_; }
 				void inject_token(const token_t& t) { tokens_.insert(t); }
 				void inject_token(token_t&& t) { tokens_.insert(std::move(t)); }
 
@@ -101,8 +100,10 @@ class ParseWorker
 				routine_t on_match_;
 				worker_arr_t workers_;
 				size_t match_counter_ = 0;
+				size_t nomatch_counter_ = 0;
 
-				size_t match_tolerance_ = 0;
+				size_t match_tolerance_ = 1;
+				size_t nomatch_timeout_ = INF_ITERS;
 				worker_t *working_ = nullptr;
 				bool neg_ = false;
 		};
@@ -183,7 +184,25 @@ inline bool ParseWorker<TokenType, DestType>::proc(const token_t& t, dest_t& d)
 		stalling_ = false;
 		return blocker_;
 	}
+	else if (handler().timeout()) {
+		rewind();
+	}
 
+	return false;
+}
+
+/*
+ * Match to a symbol based on whether or not it is contained within tokens_;
+ * if neg_ is true, this will match when the symbol is not contained.
+ */
+template <class TokenType, class DestType>
+inline bool ParseWorker<TokenType, DestType>::TokenHandler::match(const token_t& t)
+{
+	if (!neg_ ? tokens_.find(t) != tokens_.end() : tokens_.find(t) == tokens_.end()) {
+		++match_counter_;
+		return true;
+	}
+	++nomatch_counter_;
 	return false;
 }
 
@@ -230,20 +249,6 @@ inline void ParseWorker<TokenType, DestType>::TokenHandler::reset_()
 		w.reset();
 	}
 	match_counter_ = 0;
-}
-
-/*
- * Match to a symbol based on whether or not it is contained within tokens_;
- * if neg_ is true, this will match when the symbol is not contained.
- */
-template <class TokenType, class DestType>
-inline bool ParseWorker<TokenType, DestType>::TokenHandler::match(const token_t& t)
-{
-	if (!neg_ ? tokens_.find(t) != tokens_.end() : tokens_.find(t) == tokens_.end()) {
-		++match_counter_;
-		return true;
-	}
-	return false;
 }
 
 } // namespace core
