@@ -7,6 +7,8 @@
 
 namespace docgen {
 
+static constexpr const char * const FILENAME_KEY = "name";
+
 void parse_file(const char *path, nlohmann::json& parsed)
 {
 	FILE *file = fopen(path, "r");
@@ -24,7 +26,7 @@ void parse_file(const char *path, nlohmann::json& parsed)
 
 	if (!parser.parsed().is_null()) {
 		parsed.push_back(std::move(parser.parsed()));
-		parsed.back()["name"] = path;
+		parsed.back()[FILENAME_KEY] = path;
 	}
 }
 
