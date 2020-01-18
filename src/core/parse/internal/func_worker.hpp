@@ -1,16 +1,17 @@
 #pragma once
 
-#include "core/parser_internal/docgen_worker.hpp"
-#include "core/parser_internal/ignore_worker.hpp"
+#include "core/parse/details.hpp"
+#include "core/parse/internal/ignore_worker.hpp"
 
 namespace docgen {
 namespace core {
-namespace parser_internal {
+namespace parse {
+namespace internal {
 
 class FuncWorker : public worker_t
 {
 	public:
-		using worker_t = parser_internal::worker_t;
+		using worker_t = parse::worker_t;
 
 		FuncWorker()
 			: worker_t {
@@ -52,6 +53,7 @@ class FuncWorker : public worker_t
 		};
 };
 
-} // namespace parser_internal
+} // namespace internal
+} // namespace parse
 } // namespace core
 } // namespace docgen

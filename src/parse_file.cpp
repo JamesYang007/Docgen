@@ -1,8 +1,8 @@
 #include <cstdio>
 #include <string>
 #include "exceptions/exceptions.hpp"
-#include "core/lexer.hpp"
-#include "core/parser.hpp"
+#include "core/lexer/lexer.hpp"
+#include "core/parse/parser.hpp"
 #include "parse_file.hpp"
 
 namespace docgen {
@@ -18,12 +18,12 @@ void parse_file(const char *path, nlohmann::json& parsed)
 		throw exceptions::file_open_error(path);
 	}
 
-	core::Lexer lexer;
-	core::Parser parser;
+	core::lexer::Lexer lexer;
+	core::parse::Parser parser;
 
 	char buf[BUF_SZ];
 	size_t r, i;
-	std::optional<core::Lexer::token_t> token;
+	std::optional<core::lexer::Lexer::token_t> token;
 	while ((r = fread(buf, 1, BUF_SZ, file))) {
 		for (i = 0; i < r; ++i) {
 			lexer.process(buf[i]);

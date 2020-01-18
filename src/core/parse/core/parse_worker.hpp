@@ -3,9 +3,10 @@
 #include <string>
 #include <unordered_set>
 #include <vector>
-#include "core/worker_routine.hpp"
 
 namespace docgen {
+namespace core {
+namespace parse {
 namespace core {
 
 /*
@@ -43,6 +44,17 @@ class ParseWorker
 		using dest_t = DestType;
 
 		/*
+		 * RoutineDetails may be inherited for type aliases
+		 */
+		struct RoutineDetails
+		{
+			using worker_t = ParseWorker;
+			using token_t = typename worker_t::token_t;
+			using dest_t = typename worker_t::dest_t;
+			using routine_t = void (*)(worker_t *, const token_t&, dest_t&);
+		};
+
+		/*
 		 * A TokenHandler object holds an unordered set of symbols to match against (tokens_),
 		 * a function pointer which references a routine to execute on match (on_match_), and
 		 * an array of ParseWorker objects to process while still unmatched (workers_).
@@ -60,17 +72,17 @@ class ParseWorker
 				using token_set_t = std::unordered_set<token_t>;
 				using token_arr_init_t = std::initializer_list<token_t>;
 
-				using routine_t = typename WorkerRoutine<worker_t>::routine_t;
+				using routine_t = typename RoutineDetails::routine_t;
 
-				TokenHandler(token_arr_init_t t, routine_t on_m, worker_arr_init_t w={})
+				explicit TokenHandler(token_arr_init_t t, routine_t on_m=nullptr, worker_arr_init_t w={})
 					: tokens_(t), on_match_(on_m), workers_(w)
 				{}
 
-				TokenHandler(const token_t& t, routine_t on_m, worker_arr_init_t w={})
+				explicit TokenHandler(const token_t& t, routine_t on_m=nullptr, worker_arr_init_t w={})
 					: tokens_{ t }, on_match_(on_m), workers_(w)
 				{}
 
-				TokenHandler(token_t&& t, routine_t on_m, worker_arr_init_t w={})
+				explicit TokenHandler(token_t&& t, routine_t on_m=nullptr, worker_arr_init_t w={})
 					: on_match_(on_m), workers_(w)
 				{
 					tokens_.insert(std::move(t));
@@ -83,14 +95,14 @@ class ParseWorker
 				bool match(const token_t& t);
 
 				TokenHandler& neg() { neg_ = true; return *this; }
+				TokenHandler& tolerance(size_t t) { match_tolerance_ = t; return *this; }
+				TokenHandler& timeout(size_t t) { nomatch_timeout_ = t; return *this; }
 				const token_t& token() { return *tokens_.begin(); }
 				size_t tolerance() { return match_tolerance_; }
 				size_t timeout() { return nomatch_timeout_; }
-				void tolerance(size_t t) { match_tolerance_ = t; }
-				void timeout(size_t t) { nomatch_timeout_ = t; }
 				void on_match(routine_t on_m) { on_match_ = on_m; }
-				bool done() { return match_counter_ >= match_tolerance_ }
-				bool timeout() { nomatch_timeout_ == INF_ITERS ? false : nomatch_counter_ >= nomatch_timeout_; }
+				bool done() { return match_counter_ >= match_tolerance_; }
+				bool time() { return nomatch_timeout_ == INF_ITERS ? false : nomatch_counter_ >= nomatch_timeout_; }
 				void inject_token(const token_t& t) { tokens_.insert(t); }
 				void inject_token(token_t&& t) { tokens_.insert(std::move(t)); }
 
@@ -186,7 +198,7 @@ inline bool ParseWorker<TokenType, DestType>::proc(const token_t& t, dest_t& d)
 		stalling_ = false;
 		return blocker_;
 	}
-	else if (handler().timeout()) {
+	else if (handler().time()) {
 		rewind();
 	}
 
@@ -253,5 +265,7 @@ inline void ParseWorker<TokenType, DestType>::TokenHandler::reset_()
 	match_counter_ = 0;
 }
 
+} // namespace core
+} // namespace parse
 } // namespace core
 } // namespace docgen

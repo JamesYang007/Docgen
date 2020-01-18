@@ -5,6 +5,8 @@
 
 namespace docgen {
 namespace core {
+namespace parse {
+namespace core {
 
 class JSONWriter {
 	public:
@@ -112,5 +114,7 @@ inline void JSONWriter::reset()
 	to_skip_ = false;
 }
 
+} // core
+} // parse
 } // core
 } // docgen
