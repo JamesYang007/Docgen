@@ -30,9 +30,9 @@ if [ -d "libs/benchmark/googletest" ]; then
 fi
 
 # Initialize submodules if needed
-git submodule init
+git submodule update --init
 # Update submodule if needed
-git submodule update --remote
+git submodule update --recursive --remote
 
 # Setup googletest
 git clone https://github.com/google/googletest.git libs/benchmark/googletest
