@@ -16,6 +16,10 @@ enable_testing()
 # Set C++17 standard for project target
 set(CMAKE_CXX_STANDARD 17)
 
+# Set this such that dependency installation through conan can be found
+set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/libs)
+message("CMAKE_MODULE_PATH: ${CMAKE_MODULE_PATH}")
+
 # Create DocgenConfigVersion.cmake which contains current project version
 # This is supposed to help with (major) version compatibility.
 include(CMakePackageConfigHelpers)

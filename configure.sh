@@ -11,7 +11,9 @@ if [[ "$OSTYPE" == "linux-gnu" ]]; then
         echo "config fail: conan not installed"
         exit 1
     fi
+    cd libs
     conan install .
+    cd -
 elif [[ "$OSTYPE" == "darwin"* ]]; then
     if [ $(command -v brew) == "" ]; then
         echo "config fail: brew not installed"

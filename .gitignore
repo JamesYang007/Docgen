@@ -3,3 +3,4 @@ build/
 conan*
 !conanfile.txt
 graph_info.json
+*Find*.cmake
