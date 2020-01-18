@@ -12,7 +12,7 @@ class JSONWriter {
 		void write(const StringType& s);
 		void write(char c);
 		template <class StringType>
-		void feed(const StringType& s, size_t suggested_prepend=1);
+		void feed(const StringType& s);
 		void trim_written();
 		void store(const char *parent_key);
 		void reset();
@@ -67,17 +67,12 @@ inline void JSONWriter::write(char c)
  * are met (i.e. if anything has been written since last stop or key change).
  */
 template <class StringType>
-inline void JSONWriter::feed(const StringType& s, size_t suggested_prepend)
+inline void JSONWriter::feed(const StringType& s)
 {
 	if (writing()){
 		if (!skipping()) {
-			if (written()) {
-				if (!just_written()) {
-					write(' ');
-				}
-				else if (suggested_prepend) {
-					write(std::string(suggested_prepend, ' '));
-				}
+			if (written() && !just_written()) {
+				write(' ');
 			}
 			write(s);
 			just_written_ = true;
