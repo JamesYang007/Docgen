@@ -35,9 +35,8 @@ TEST_F(trie_fixture, trie_root)
     EXPECT_TRUE(!trie.is_accept());
     EXPECT_TRUE(trie.is_reset());
 
-    auto& children = trie.get_children();
-    EXPECT_EQ(children.size(), static_cast<size_t>(1));
-    EXPECT_NE(children.find('a'), children.end());  // found
+    EXPECT_EQ(trie.get_children().size(), static_cast<size_t>(1));
+    EXPECT_NE(trie.get_children().find('a'), trie.get_children().end());  // found
 }
 
 TEST_F(trie_fixture, trie_transition_child_a) 
@@ -55,10 +54,9 @@ TEST_F(trie_fixture, trie_transition_child_a)
     EXPECT_TRUE(trie.is_accept());
     EXPECT_TRUE(!trie.is_reset());
 
-    auto& children = trie.get_children();
-    EXPECT_EQ(children.size(), static_cast<size_t>(2));
-    EXPECT_NE(children.find('b'), children.end());  // found
-    EXPECT_NE(children.find('c'), children.end());  // found
+    EXPECT_EQ(trie.get_children().size(), static_cast<size_t>(2));
+    EXPECT_NE(trie.get_children().find('b'), trie.get_children().end());  // found
+    EXPECT_NE(trie.get_children().find('c'), trie.get_children().end());  // found
 }
 
 TEST_F(trie_fixture, trie_transition_child_b)
@@ -76,9 +74,8 @@ TEST_F(trie_fixture, trie_transition_child_b)
     EXPECT_TRUE(!trie.is_accept());
     EXPECT_TRUE(!trie.is_reset());
 
-    auto& children = trie.get_children();
-    EXPECT_EQ(children.size(), static_cast<size_t>(1));
-    EXPECT_NE(children.find('c'), children.end());  // found
+    EXPECT_EQ(trie.get_children().size(), static_cast<size_t>(1));
+    EXPECT_NE(trie.get_children().find('c'), trie.get_children().end());  // found
 }
 
 TEST_F(trie_fixture, trie_transition_child_bc)
@@ -98,8 +95,7 @@ TEST_F(trie_fixture, trie_transition_child_bc)
     EXPECT_TRUE(trie.is_accept());
     EXPECT_TRUE(!trie.is_reset());
 
-    auto& children = trie.get_children();
-    EXPECT_EQ(children.size(), static_cast<size_t>(0));
+    EXPECT_EQ(trie.get_children().size(), static_cast<size_t>(0));
 }
 
 TEST_F(trie_fixture, trie_transition_child_c)
@@ -118,8 +114,7 @@ TEST_F(trie_fixture, trie_transition_child_c)
     EXPECT_TRUE(trie.is_accept());
     EXPECT_TRUE(!trie.is_reset());
 
-    auto& children = trie.get_children();
-    EXPECT_EQ(children.size(), static_cast<size_t>(0));
+    EXPECT_EQ(trie.get_children().size(), static_cast<size_t>(0));
 }
 
 TEST_F(trie_fixture, trie_reset_root)
@@ -136,9 +131,8 @@ TEST_F(trie_fixture, trie_reset_root)
     EXPECT_TRUE(!trie.is_accept());
     EXPECT_TRUE(trie.is_reset());
 
-    auto& children = trie.get_children();
-    EXPECT_EQ(children.size(), static_cast<size_t>(1));
-    EXPECT_NE(children.find('a'), children.end());  // found
+    EXPECT_EQ(trie.get_children().size(), static_cast<size_t>(1));
+    EXPECT_NE(trie.get_children().find('a'), trie.get_children().end());  // found
 }
 
 TEST_F(trie_fixture, trie_reset_child_a)
@@ -157,9 +151,8 @@ TEST_F(trie_fixture, trie_reset_child_a)
     EXPECT_TRUE(!trie.is_accept());
     EXPECT_TRUE(trie.is_reset());
 
-    auto& children = trie.get_children();
-    EXPECT_EQ(children.size(), static_cast<size_t>(1));
-    EXPECT_NE(children.find('a'), children.end());  // found
+    EXPECT_EQ(trie.get_children().size(), static_cast<size_t>(1));
+    EXPECT_NE(trie.get_children().find('a'), trie.get_children().end());  // found
 }
 
 TEST_F(trie_fixture, trie_reset_child_a_b)
@@ -179,9 +172,8 @@ TEST_F(trie_fixture, trie_reset_child_a_b)
     EXPECT_TRUE(!trie.is_accept());
     EXPECT_TRUE(trie.is_reset());
 
-    auto& children = trie.get_children();
-    EXPECT_EQ(children.size(), static_cast<size_t>(1));
-    EXPECT_NE(children.find('a'), children.end());  // found
+    EXPECT_EQ(trie.get_children().size(), static_cast<size_t>(1));
+    EXPECT_NE(trie.get_children().find('a'), trie.get_children().end());  // found
 }
 
 TEST_F(trie_fixture, trie_back_transition_root)
@@ -210,9 +202,8 @@ TEST_F(trie_fixture, trie_back_transition_child_a)
     EXPECT_TRUE(!trie.is_accept());
     EXPECT_TRUE(trie.is_reset());
 
-    auto& children = trie.get_children();
-    EXPECT_EQ(children.size(), static_cast<size_t>(1));
-    EXPECT_NE(children.find('a'), children.end());  // found
+    EXPECT_EQ(trie.get_children().size(), static_cast<size_t>(1));
+    EXPECT_NE(trie.get_children().find('a'), trie.get_children().end());  // found
 }
 
 TEST_F(trie_fixture, trie_back_transition_child_ab)
@@ -233,10 +224,9 @@ TEST_F(trie_fixture, trie_back_transition_child_ab)
     EXPECT_TRUE(trie.is_accept());
     EXPECT_TRUE(!trie.is_reset());
 
-    auto children = trie.get_children();
-    EXPECT_EQ(children.size(), static_cast<size_t>(2));
-    EXPECT_NE(children.find('b'), children.end());  // found
-    EXPECT_NE(children.find('c'), children.end());  // found
+    EXPECT_EQ(trie.get_children().size(), static_cast<size_t>(2));
+    EXPECT_NE(trie.get_children().find('b'), trie.get_children().end());  // found
+    EXPECT_NE(trie.get_children().find('c'), trie.get_children().end());  // found
 
     // back to root
     trie.back_transition();
@@ -245,9 +235,8 @@ TEST_F(trie_fixture, trie_back_transition_child_ab)
     EXPECT_TRUE(!trie.is_accept());
     EXPECT_TRUE(trie.is_reset());
 
-    children = trie.get_children();
-    EXPECT_EQ(children.size(), static_cast<size_t>(1));
-    EXPECT_NE(children.find('a'), children.end());  // found
+    EXPECT_EQ(trie.get_children().size(), static_cast<size_t>(1));
+    EXPECT_NE(trie.get_children().find('a'), trie.get_children().end());  // found
 }
 
 ////////////////////////////////////////////
@@ -266,10 +255,9 @@ TEST_F(trie_fixture, trie_off_by_one_prefix)
     EXPECT_TRUE(!trie.is_accept());
     EXPECT_TRUE(trie.is_reset());
 
-    auto children = trie.get_children();
-    EXPECT_EQ(children.size(), static_cast<size_t>(2));
-    EXPECT_NE(children.find('a'), children.end());  // found
-    EXPECT_NE(children.find('b'), children.end());  // found
+    EXPECT_EQ(trie.get_children().size(), static_cast<size_t>(2));
+    EXPECT_NE(trie.get_children().find('a'), trie.get_children().end());  // found
+    EXPECT_NE(trie.get_children().find('b'), trie.get_children().end());  // found
 
     // check child 'a'
     trie.transition('a');
@@ -278,9 +266,8 @@ TEST_F(trie_fixture, trie_off_by_one_prefix)
     EXPECT_TRUE(!trie.is_accept());
     EXPECT_TRUE(!trie.is_reset());
 
-    children = trie.get_children();
-    EXPECT_EQ(children.size(), static_cast<size_t>(1));
-    EXPECT_NE(children.find('b'), children.end());  // found
+    EXPECT_EQ(trie.get_children().size(), static_cast<size_t>(1));
+    EXPECT_NE(trie.get_children().find('b'), trie.get_children().end());  // found
 
     // check child 'a'->'b'
     trie.transition('b');
@@ -289,8 +276,7 @@ TEST_F(trie_fixture, trie_off_by_one_prefix)
     EXPECT_TRUE(trie.is_accept());
     EXPECT_TRUE(!trie.is_reset());
 
-    children = trie.get_children();
-    EXPECT_EQ(children.size(), static_cast<size_t>(0));
+    EXPECT_EQ(trie.get_children().size(), static_cast<size_t>(0));
 
     // up to child 'a'
     trie.back_transition();
@@ -305,9 +291,8 @@ TEST_F(trie_fixture, trie_off_by_one_prefix)
     EXPECT_TRUE(!trie.is_accept());
     EXPECT_TRUE(!trie.is_reset());
 
-    children = trie.get_children();
-    EXPECT_EQ(children.size(), static_cast<size_t>(1));
-    EXPECT_NE(children.find('a'), children.end());  // found
+    EXPECT_EQ(trie.get_children().size(), static_cast<size_t>(1));
+    EXPECT_NE(trie.get_children().find('a'), trie.get_children().end());  // found
 
     // check child 'b'->'a'
     trie.transition('a');
@@ -316,9 +301,8 @@ TEST_F(trie_fixture, trie_off_by_one_prefix)
     EXPECT_TRUE(!trie.is_accept());
     EXPECT_TRUE(!trie.is_reset());
 
-    children = trie.get_children();
-    EXPECT_EQ(children.size(), static_cast<size_t>(1));
-    EXPECT_NE(children.find('b'), children.end());  // found
+    EXPECT_EQ(trie.get_children().size(), static_cast<size_t>(1));
+    EXPECT_NE(trie.get_children().find('b'), trie.get_children().end());  // found
 
     // check child 'b'->'a'->'b'
     trie.transition('b');
@@ -327,8 +311,7 @@ TEST_F(trie_fixture, trie_off_by_one_prefix)
     EXPECT_TRUE(trie.is_accept());
     EXPECT_TRUE(!trie.is_reset());
 
-    children = trie.get_children();
-    EXPECT_EQ(children.size(), static_cast<size_t>(0));
+    EXPECT_EQ(trie.get_children().size(), static_cast<size_t>(0));
 }
 
 } // namespace lex

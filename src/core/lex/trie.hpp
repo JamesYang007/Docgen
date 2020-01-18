@@ -4,6 +4,7 @@
 #include <type_traits>
 #include <cassert>
 #include <optional>
+#include <memory>
 #include <exceptions/exceptions.hpp>
 
 namespace docgen {
@@ -34,7 +35,7 @@ public:
     void transition(char c);
     void back_transition();
     bool is_accept() const;
-    std::unordered_map<char, TrieNode>& get_children();
+    typename TrieNode::children_t& get_children();
     bool is_reset() const;
     void reset();
     const std::optional<SymbolType>& get_symbol() const;
@@ -43,6 +44,8 @@ private:
 
     struct TrieNode
     {
+        using children_t = std::unordered_map<char, std::unique_ptr<TrieNode>>;
+
         // Insert str from current node to update the trie structure.
         // The string str is read starting from idx.
         void insert(const std::pair<std::string_view, SymbolType>&, size_t = 0);
@@ -54,7 +57,7 @@ private:
         // Symbol will be active if is_accept is true.
         const std::optional<SymbolType>& get_symbol() const;
 
-        std::unordered_map<char, TrieNode>& get_children();
+        children_t& get_children();
 
         std::optional<std::reference_wrapper<TrieNode>> get_parent();
 
@@ -65,10 +68,10 @@ private:
             non_accept
         };
 
-        State state_ = State::non_accept;               // indicates accepting node or not
-        std::optional<SymbolType> symbol_;              // symbol for accepting node
-        std::unordered_map<char, TrieNode> children_;   // current node's children
-        TrieNode* parent_ptr_;                          // current node's parent
+        State state_ = State::non_accept;   // indicates accepting node or not
+        std::optional<SymbolType> symbol_;  // symbol for accepting node
+        children_t children_;               // current node's children
+        TrieNode* parent_ptr_;              // current node's parent
     };
 
     TrieNode root_;                                       // root of Trie
@@ -92,9 +95,13 @@ Trie<SymbolType>::TrieNode::insert(const pair_t& pair, size_t idx)
     }
 
     else {
-        auto& child = children_[str[idx]];
-        child.parent_ptr_ = this;
-        child.insert(pair, idx + 1);
+        // if no child with str[idx] mapping
+        if (children_.find(str[idx]) == children_.end()) {
+            children_.emplace(str[idx], std::make_unique<TrieNode>());
+        }
+        auto& child = children_.at(str[idx]);
+        child->parent_ptr_ = this;
+        child->insert(pair, idx + 1);
     }
 }
 
@@ -113,7 +120,7 @@ Trie<SymbolType>::TrieNode::get_symbol() const
 }
 
 template <class SymbolType>
-inline std::unordered_map<char, typename Trie<SymbolType>::TrieNode>&
+inline typename Trie<SymbolType>::TrieNode::children_t&
 Trie<SymbolType>::TrieNode::get_children()
 {
     return children_;
@@ -150,7 +157,7 @@ template <class SymbolType>
 inline void
 Trie<SymbolType>::transition(char c)
 {
-    curr_node_ = curr_node_.get().get_children().at(c);
+    curr_node_ = *(curr_node_.get().get_children().at(c));
 }
 
 template <class SymbolType>
@@ -161,7 +168,7 @@ Trie<SymbolType>::is_accept() const
 }
 
 template <class SymbolType>
-inline std::unordered_map<char, typename Trie<SymbolType>::TrieNode>&
+inline typename Trie<SymbolType>::TrieNode::children_t&
 Trie<SymbolType>::get_children() 
 {
     return curr_node_.get().get_children();
