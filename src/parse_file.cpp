@@ -9,6 +9,8 @@ namespace docgen {
 
 static constexpr const char * const FILENAME_KEY = "name";
 
+static constexpr size_t BUF_SZ = 4096;
+
 void parse_file(const char *path, nlohmann::json& parsed)
 {
 	FILE *file = fopen(path, "r");
@@ -16,13 +18,24 @@ void parse_file(const char *path, nlohmann::json& parsed)
 		throw exceptions::file_open_error(path);
 	}
 
-	core::Lexer lexer(file);
-	lexer.process();
-
-	fclose(file);
-
+	core::Lexer lexer;
 	core::Parser parser;
-	parser.process(lexer.get_tokens());
+
+	char buf[BUF_SZ];
+	size_t r, i;
+	std::optional<core::Lexer::token_t> token;
+	while ((r = fread(buf, 1, BUF_SZ, file))) {
+		for (i = 0; i < r; ++i) {
+			lexer.process(buf[i]);
+			if ((token = lexer.next_token())) {
+				parser.process(*token);
+			}
+		}
+	}
+	if (ferror(file)) {
+		throw exceptions::system_error("fread() failed on file at path \"" + std::string(path) + '\"');
+	}
+	fclose(file);
 
 	if (!parser.parsed().is_null()) {
 		parsed.push_back(std::move(parser.parsed()));

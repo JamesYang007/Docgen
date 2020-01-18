@@ -22,6 +22,7 @@ class Parser
 		using IgnoreWorker = parser_internal::IgnoreWorker;
 		using TagWorker = parser_internal::TagWorker;
 		using symbol_t = parser_internal::symbol_t;
+		using token_t = parser_internal::token_t;
 
 		Parser()
 			: worker_ {
@@ -34,10 +35,7 @@ class Parser
 			}
 		{}
 
-		using token_t = parser_internal::token_t;
-		using token_arr_t = std::vector<token_t>;
-
-		void process(const token_arr_t& tokens);
+		void process(const token_t& token);
 
 		nlohmann::json& parsed() { return writer_.stored(); }
 
@@ -46,14 +44,10 @@ class Parser
 		parser_internal::writer_t writer_;
 };
 
-inline void Parser::process(const token_arr_t& tokens)
+inline void Parser::process(const token_t& token)
 {
-	writer_.reset();
-
-	for (const token_t& token : tokens) {
-		worker_.proc(token, writer_);
-		writer_.feed(token.c_str(), token.leading_ws_count);
-	}
+	worker_.proc(token, writer_);
+	writer_.feed(token.c_str());
 }
 
 } // namespace docgen
