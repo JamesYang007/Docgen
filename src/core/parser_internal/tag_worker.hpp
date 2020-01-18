@@ -14,7 +14,10 @@ class TagWorker : public worker_t
 		TagWorker()
 			: worker_t {
 				TokenHandler({
-					symbol_t::TAGNAME
+					symbol_t::SDESC,
+					symbol_t::TPARAM,
+					symbol_t::PARAM,
+					symbol_t::RETURN
 				}, Routines::on_tag_)
 			}
 		{}
