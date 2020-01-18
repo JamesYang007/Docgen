@@ -85,7 +85,9 @@ class ParseWorker
 				TokenHandler& neg() { neg_ = true; return *this; }
 				const token_t& token() { return *tokens_.begin(); }
 				size_t tolerance() { return match_tolerance_; }
+				size_t timeout() { return nomatch_timeout_; }
 				void tolerance(size_t t) { match_tolerance_ = t; }
+				void timeout(size_t t) { nomatch_timeout_ = t; }
 				void on_match(routine_t on_m) { on_match_ = on_m; }
 				bool done() { return match_counter_ >= match_tolerance_ }
 				bool timeout() { nomatch_timeout_ == INF_ITERS ? false : nomatch_counter_ >= nomatch_timeout_; }
