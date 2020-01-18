@@ -1,2 +1,5 @@
 node_modules
 build/
+conan*
+!conanfile.txt
+graph_info.json
