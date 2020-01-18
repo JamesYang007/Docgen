@@ -10,16 +10,19 @@ enum class Symbol {
     // single-char tokens
     END_OF_FILE,
     NEWLINE,
+    WHITESPACE,
     SEMICOLON,
     STAR,
     OPEN_BRACE,
     CLOSE_BRACE,
     // string tokens
-    BEGIN_LINE_COMMENT,
-    BEGIN_BLOCK_COMMENT,
+    BEGIN_SLINE_COMMENT,
+    BEGIN_SBLOCK_COMMENT,
+    BEGIN_NLINE_COMMENT,
+    BEGIN_NBLOCK_COMMENT,
     END_BLOCK_COMMENT,
     // special tags
-    TAGNAME,
+    SDESC,
     // default
     TEXT
 };
@@ -31,8 +34,10 @@ static MAPBOX_ETERNAL_CONSTEXPR const auto symbol_map =
             {Symbol::STAR, "*"},
             {Symbol::OPEN_BRACE, "{"},
             {Symbol::CLOSE_BRACE, "}"},
-            {Symbol::BEGIN_LINE_COMMENT, "///"},
-            {Symbol::BEGIN_BLOCK_COMMENT, "/*!"},
+            {Symbol::BEGIN_SLINE_COMMENT, "///"},
+            {Symbol::BEGIN_SBLOCK_COMMENT, "/*!"},
+            {Symbol::BEGIN_NLINE_COMMENT, "//"},
+            {Symbol::BEGIN_NBLOCK_COMMENT, "/*"},
             {Symbol::END_BLOCK_COMMENT, "*/"},
     });
 

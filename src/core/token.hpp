@@ -10,10 +10,9 @@ struct Token
 {
     using symbol_t = SymbolType;
 
-    Token(symbol_t name, std::string&& content, uint32_t leading_ws_count=0)
+    Token(symbol_t name, std::string&& content)
         : name(name)
         , content(std::move(content))
-        , leading_ws_count(leading_ws_count)
     {}
 
     Token(symbol_t name)
@@ -25,7 +24,6 @@ struct Token
 
     symbol_t name;
     std::string content;
-    uint32_t leading_ws_count;
 };
 
 template <>
