@@ -12,6 +12,7 @@ enum class Symbol {
     NEWLINE,
     WHITESPACE,
     SEMICOLON,
+    HASHTAG,
     STAR,
     OPEN_BRACE,
     CLOSE_BRACE,
@@ -23,6 +24,9 @@ enum class Symbol {
     END_BLOCK_COMMENT,
     // special tags
     SDESC,
+    TPARAM,
+    PARAM,
+    RETURN,
     // default
     TEXT
 };
