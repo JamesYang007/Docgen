@@ -15,13 +15,17 @@
 using namespace docgen;
 
 /* Defaults */
-static constexpr const char *CONFIG_PATH_DEFAULT = "./.docgen.json";
-static constexpr const char *SRC_PATH_DEFAULT = ".";
-static constexpr const char *DOCS_DST_PATH_DEFAULT = ".";
+static constexpr const char * const CONFIG_PATH_DEFAULT = "./.docgen.json";
+static constexpr const char * const SRC_PATH_DEFAULT = ".";
+static constexpr const char * const DOCS_DST_PATH_DEFAULT = ".";
+static constexpr std::ostream * const LOG_STREAM_DEFAULT = &std::cerr;
+static constexpr std::ostream * const ERR_STREAM_DEFAULT = &std::cerr;
 
 /* Configuration JSON keys */
-static constexpr const char *EXCLUDE_FILES_KEY = "exclude";
-static constexpr const char *SOURCE_FILES_KEY = "source";
+static constexpr const char * const SOURCE_FILES_KEY = "source";
+static constexpr const char * const EXCLUDE_FILES_KEY = "exclude";
+static constexpr const char * const LOG_FILE_KEY = "logfile";
+static constexpr const char * const ERR_FILE_KEY = "errfile";
 
 /* Options */
 static nlohmann::json config;
@@ -29,9 +33,28 @@ static std::vector<std::string> file_source_paths;
 static std::unordered_set<std::string> file_source_excludes;
 static std::shared_ptr<std::istream> parsed_src(nullptr);
 static std::shared_ptr<std::ostream> parsed_dst(nullptr);
-static std::shared_ptr<std::ostream> logger(&std::cerr, [](std::ostream *){});
-static std::shared_ptr<std::ostream> err(&std::cerr, [](std::ostream *){});
+static std::shared_ptr<std::ostream> logger(LOG_STREAM_DEFAULT, [](std::ostream *){});
+static std::shared_ptr<std::ostream> err(ERR_STREAM_DEFAULT, [](std::ostream *){});
 static const char *docs_dst_path = DOCS_DST_PATH_DEFAULT;
+
+/*
+ * set_options() helper for opening output file stream and error-checking
+ */
+static inline void set_option_outfile_stream(std::shared_ptr<std::ostream>& stream, const std::string& path, bool append=false)
+{
+	stream = std::make_shared<std::ofstream>(path, append ? std::ofstream::app : std::ofstream::out);
+	if (stream->fail()) {
+		throw exceptions::system_error("failed to open output file stream");
+	}
+}
+
+/*
+ * set_options() helper for opening output file stream to append
+ */
+static inline void set_option_outfile_append_stream(std::shared_ptr<std::ostream>& stream, const char *path)
+{
+	set_option_outfile_stream(stream, path, true);
+}
 
 /*
  * Sets global options as per passed argv and docgen configuration file (if present)
@@ -74,23 +97,14 @@ static inline void set_options(int argc, char **argv)
 					parsed_dst = std::shared_ptr<std::ostream>(&std::cout, [](std::ostream *){});
 				}
 				else {
-					parsed_dst = std::make_shared<std::ofstream>(optarg);
-					if (parsed_dst->fail()) {
-						throw exceptions::system_error("failed to open output stream");
-					}
+					set_option_outfile_stream(parsed_dst, optarg);
 				}
 				break;
 			case 'l':
-				logger = std::make_shared<std::ofstream>(optarg, std::ofstream::app);
-				if (logger->fail()) {
-					throw exceptions::system_error("failed to open logging stream");
-				}
+				set_option_outfile_append_stream(logger, optarg);
 				break;
 			case 'e':
-				err = std::make_shared<std::ofstream>(optarg, std::ofstream::app);
-				if (err->fail()) {
-					throw exceptions::system_error("failed to open error stream");
-				}
+				set_option_outfile_append_stream(err, optarg);
 				break;
 
 			case 'x':
@@ -144,6 +158,8 @@ static inline void set_options(int argc, char **argv)
 	// set by information from config json if present
 	nlohmann::json& config_source = config[SOURCE_FILES_KEY];
 	nlohmann::json& config_exclude = config[EXCLUDE_FILES_KEY];
+	nlohmann::json& config_logfile = config[LOG_FILE_KEY];
+	nlohmann::json& config_errfile = config[ERR_FILE_KEY];
 	std::string *val_ptr;
 
 	file_source_count += config_source.size();
@@ -156,13 +172,19 @@ static inline void set_options(int argc, char **argv)
 			}
 		}
 	}
-
 	if (config_exclude.is_array()) {
 		for (nlohmann::json& val : config_exclude) {
 			if ((val_ptr = val.get_ptr<std::string *>())) {
 				file_source_excludes.insert(std::filesystem::weakly_canonical(std::move(*val_ptr)));
 			}
 		}
+	}
+
+	if (config_logfile.is_string() && logger.get() == LOG_STREAM_DEFAULT) {
+		set_option_outfile_append_stream(logger, config_logfile.get_ref<std::string&>().c_str());
+	}
+	if (config_errfile.is_string() && err.get() == ERR_STREAM_DEFAULT) {
+		set_option_outfile_append_stream(err, config_errfile.get_ref<std::string&>().c_str());
 	}
 
 	// set by any path arguments
