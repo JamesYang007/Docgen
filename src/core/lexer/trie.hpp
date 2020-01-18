@@ -8,14 +8,16 @@
 
 namespace docgen {
 namespace core {
+namespace lexer {
 
 template <class SymbolType>
 struct Trie
 {
 private:
-    using pair_t = std::pair<std::string_view, SymbolType>;
+    struct TrieNode; // forward declaration
 
 public:
+    using pair_t = std::pair<std::string_view, SymbolType>;
 
     // Constructs trie node from a list of pairs of string and symbol.
     // The string must be of type std::string_view and it must not be empty.
@@ -32,7 +34,7 @@ public:
     void transition(char c);
     void back_transition();
     bool is_accept() const;
-    auto get_children();
+    std::unordered_map<char, TrieNode>& get_children();
     bool is_reset() const;
     void reset();
     const std::optional<SymbolType>& get_symbol() const;
@@ -159,7 +161,7 @@ Trie<SymbolType>::is_accept() const
 }
 
 template <class SymbolType>
-inline auto
+inline std::unordered_map<char, typename Trie<SymbolType>::TrieNode>&
 Trie<SymbolType>::get_children() 
 {
     return curr_node_.get().get_children();
@@ -197,5 +199,6 @@ Trie<SymbolType>::get_symbol() const
     return curr_node_.get().get_symbol();
 }
 
+} // namespace lexer
 } // namespace core
 } // namespace docgen

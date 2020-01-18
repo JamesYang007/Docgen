@@ -1,6 +1,6 @@
 #pragma once
 #include <string>
-#include "symbol.hpp"
+#include <core/symbol.hpp>
 
 namespace docgen {
 namespace core {

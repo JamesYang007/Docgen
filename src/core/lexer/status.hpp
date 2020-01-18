@@ -1,9 +1,9 @@
 #pragma once
 #include <queue>
-#include <string>
 
 namespace docgen {
 namespace core {
+namespace lexer {
 
 template <class TokenType>
 struct Status
@@ -14,5 +14,6 @@ struct Status
     token_arr_t tokens;
 };
 
+} // namespace lexer
 } // namespace core
 } // namespace docgen

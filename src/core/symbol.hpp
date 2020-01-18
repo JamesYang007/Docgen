@@ -1,7 +1,5 @@
 #pragma once
 #include <mapbox/eternal.hpp>
-#include <unordered_set>
-#include <string>
 
 namespace docgen {
 namespace core {

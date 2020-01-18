@@ -1,41 +1,8 @@
-#pragma once 
-#include <core/trie.hpp>
-#include <core/symbol.hpp>
-#include <core/status.hpp>
-#include <core/token.hpp>
+#include <core/lexer/lexer.hpp>
 
 namespace docgen {
 namespace core {
-
-struct Lexer
-{
-    using symbol_t = Symbol;
-    using token_t = Token<symbol_t>;
-    using status_t = Status<token_t>;
-
-    Lexer();
-
-    void process(char c);
-    std::optional<Lexer::token_t> next_token();
-
-private:
-
-    bool is_backtracking() const;
-    void set_backtracking();
-    void reset_backtracking();
-    void backtrack(char c);
-
-    enum class State : bool {
-        backtrack,
-        non_backtrack
-    };
-    
-    Trie<symbol_t> trie_;
-    std::string text_;
-    std::string buf_;
-    State state_ = State::non_backtrack;
-    status_t status_;
-};
+namespace lexer {
 
 ///////////////////////////////////
 // Lexer Implementation
@@ -64,21 +31,11 @@ Lexer::Lexer()
             {"@param", Symbol::PARAM},
             {"@return", Symbol::RETURN}
             })
-{
-    // TODO: reserve space for status_.tokens?
-}
+{}
 
-inline void Lexer::process(char c)
+void Lexer::process(char c)
 {
-    // if current state is accepting
-    if (trie_.is_accept()) {
-        if (!this->is_backtracking()) {
-            this->set_backtracking();
-        }
-        // ignore contents in buffer up until now
-        // this optimization can be done because we look for longest match
-        buf_.clear();
-    }
+    this->update_state();
 
     auto it = trie_.get_children().find(c);
 
@@ -104,32 +61,11 @@ inline void Lexer::process(char c)
     this->backtrack(c); 
 }
 
-inline bool Lexer::is_backtracking() const
+void Lexer::backtrack(char c)
 {
-    return state_ == State::backtrack;
-}
+    // tokenize text
+    this->tokenize_text(); 
 
-inline void Lexer::set_backtracking()
-{
-    state_ = State::backtrack;
-}
-
-inline void Lexer::reset_backtracking()
-{
-    state_ = State::non_backtrack;
-}
-
-inline void Lexer::backtrack(char c)
-{
-    // reset to non-backtracking
-    this->reset_backtracking();
-
-    // tokenize and clear text
-    if (!text_.empty()) {
-        status_.tokens.emplace(symbol_t::TEXT, std::move(text_));
-        text_.clear();
-    }
-    
     // tokenize symbol
     for (uint32_t i = 0; i < buf_.size(); ++i) {
         trie_.back_transition();
@@ -141,11 +77,10 @@ inline void Lexer::backtrack(char c)
 
     // move and clear buf_ to temp string for reprocessing
     std::string reprocess_str(std::move(buf_));
-    buf_.clear();
     reprocess_str.push_back(c);
 
-    // reset trie
-    trie_.reset();
+    // reset 
+    this->reset();
     
     // reprocess the rest
     for (char c : reprocess_str) {
@@ -153,15 +88,22 @@ inline void Lexer::backtrack(char c)
     }
 }
 
-inline std::optional<Lexer::token_t> Lexer::next_token() 
+void Lexer::flush()
 {
-    if (!status_.tokens.empty()) {
-        token_t token = std::move(status_.tokens.front());
-        status_.tokens.pop();
-        return token;
+    this->update_state();
+
+    if (this->is_backtracking()) {
+        return this->backtrack(0);
     }
-    return {};
+
+    // non-backtracking: no parent is an accepting node
+    // append buf_ to text_ and tokenize text_
+    // reset all other fields
+    text_.append(buf_);
+    this->tokenize_text();
+    this->reset();
 }
 
+} // namespace lexer
 } // namespace core
 } // namespace docgen

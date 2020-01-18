@@ -45,8 +45,10 @@ add_custom_command(
 ######################################################
 
 add_executable(core_unittests
-               ${CMAKE_CURRENT_SOURCE_DIR}/core/trie_unittest.cpp
-               ${CMAKE_CURRENT_SOURCE_DIR}/core/lexer_unittest.cpp
+               ${CMAKE_CURRENT_SOURCE_DIR}/core/lexer/trie_unittest.cpp
+               ${CMAKE_CURRENT_SOURCE_DIR}/core/lexer/lexer_unittest.cpp
+               # Source dependency
+               $<TARGET_OBJECTS:LEXER_LIB_OBJECTS>
                )
 
 create_test("core_unittests" core_unittests)

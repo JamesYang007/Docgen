@@ -30,13 +30,6 @@ protected:
         fwrite(content, sizeof(char), strlen(content), fp);
         fclose(fp);
     }
-
-    void check_token(symbol_t actual_sym, symbol_t expected_sym,
-                     const std::string& actual_str, const std::string& expected_str)
-    {
-        EXPECT_EQ(actual_sym, expected_sym);
-        EXPECT_EQ(actual_str, expected_str);
-    }
 };
 
 } // namespace core
