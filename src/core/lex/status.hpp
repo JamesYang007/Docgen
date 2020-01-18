@@ -3,7 +3,7 @@
 
 namespace docgen {
 namespace core {
-namespace lexer {
+namespace lex {
 
 template <class TokenType>
 struct Status
@@ -14,6 +14,6 @@ struct Status
     token_arr_t tokens;
 };
 
-} // namespace lexer
+} // namespace lex
 } // namespace core
 } // namespace docgen

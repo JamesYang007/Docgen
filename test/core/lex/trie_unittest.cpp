@@ -1,9 +1,9 @@
-#include <core/lexer/trie.hpp>
+#include <core/lex/trie.hpp>
 #include <gtest/gtest.h>
 
 namespace docgen {
 namespace core {
-namespace lexer {
+namespace lex {
 
 enum class MockSymbol {
     symbol_0,
@@ -331,6 +331,6 @@ TEST_F(trie_fixture, trie_off_by_one_prefix)
     EXPECT_EQ(children.size(), static_cast<size_t>(0));
 }
 
-} // namespace lexer
+} // namespace lex
 } // namespace core
 } // namespace docgen

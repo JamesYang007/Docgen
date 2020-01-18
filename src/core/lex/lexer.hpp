@@ -1,12 +1,12 @@
 #pragma once 
-#include <core/lexer/trie.hpp>
-#include <core/lexer/status.hpp>
+#include <core/lex/trie.hpp>
+#include <core/lex/status.hpp>
 #include <core/symbol.hpp>
 #include <core/token.hpp>
 
 namespace docgen {
 namespace core {
-namespace lexer {
+namespace lex {
 
 struct Lexer
 {
@@ -95,6 +95,6 @@ inline void Lexer::reset()
     reset_backtracking();
 }
 
-} // namespace lexer
+} // namespace lex
 } // namespace core
 } // namespace docgen

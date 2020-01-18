@@ -1,8 +1,8 @@
-#include <core/lexer/lexer.hpp>
+#include <core/lex/lexer.hpp>
 
 namespace docgen {
 namespace core {
-namespace lexer {
+namespace lex {
 
 ///////////////////////////////////
 // Lexer Implementation
@@ -108,6 +108,6 @@ void Lexer::flush()
     this->reset();
 }
 
-} // namespace lexer
+} // namespace lex
 } // namespace core
 } // namespace docgen

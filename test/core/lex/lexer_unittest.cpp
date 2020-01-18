@@ -1,9 +1,9 @@
-#include <core/lexer/lexer.hpp>
+#include <core/lex/lexer.hpp>
 #include <gtest/gtest.h>
 
 namespace docgen {
 namespace core {
-namespace lexer {
+namespace lex {
 
 struct lexer_fixture : ::testing::Test
 {
@@ -798,6 +798,6 @@ TEST_F(lexer_fixture, lexer_test_1_tagname_comments)
     EXPECT_FALSE(static_cast<bool>(token));
 }
 
-} // namespace lexer 
+} // namespace lex
 } // namespace core
 } // namespace docgen

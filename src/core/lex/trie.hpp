@@ -8,7 +8,7 @@
 
 namespace docgen {
 namespace core {
-namespace lexer {
+namespace lex {
 
 template <class SymbolType>
 struct Trie
@@ -199,6 +199,6 @@ Trie<SymbolType>::get_symbol() const
     return curr_node_.get().get_symbol();
 }
 
-} // namespace lexer
+} // namespace lex
 } // namespace core
 } // namespace docgen
