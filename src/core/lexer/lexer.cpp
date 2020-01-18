@@ -50,11 +50,15 @@ void Lexer::process(char c)
     
     // if not backtracking
     if (!this->is_backtracking()) {
+        // if trie at root
+        if (trie_.is_reset()) {
+            text_.push_back(c);
+            return;
+        }
         text_.append(buf_);
-        text_.push_back(c);
         buf_.clear();
         trie_.reset();
-        return;
+        return this->process(c);
     }
     
     // otherwise, currently backtracking

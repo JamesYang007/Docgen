@@ -196,9 +196,233 @@ TEST_F(lexer_fixture, lexer_semicolon)
     EXPECT_FALSE(static_cast<bool>(token));
 }
 
+// BEGIN_SLINE_COMMENT
+TEST_F(lexer_fixture, lexer_begin_sline_comment)
+{
+    static constexpr const char* content =
+        "abc///"
+        ;
+    setup_lexer(content);
+
+    token = lexer.next_token();
+    EXPECT_EQ(token->name, symbol_t::TEXT);
+	EXPECT_EQ(token->content, "abc");
+
+    token = lexer.next_token();
+    EXPECT_EQ(token->name, symbol_t::BEGIN_SLINE_COMMENT);
+	EXPECT_EQ(token->content, "");
+
+    // check that there are no more tokens
+    token = lexer.next_token();
+    EXPECT_FALSE(static_cast<bool>(token));
+}
+
+// BEGIN_SBLOCK_COMMENT
+TEST_F(lexer_fixture, lexer_begin_sblock_comment)
+{
+    static constexpr const char* content =
+        "abc/*!"
+        ;
+    setup_lexer(content);
+
+    token = lexer.next_token();
+    EXPECT_EQ(token->name, symbol_t::TEXT);
+	EXPECT_EQ(token->content, "abc");
+
+    token = lexer.next_token();
+    EXPECT_EQ(token->name, symbol_t::BEGIN_SBLOCK_COMMENT);
+	EXPECT_EQ(token->content, "");
+
+    // check that there are no more tokens
+    token = lexer.next_token();
+    EXPECT_FALSE(static_cast<bool>(token));
+}
+
+// BEGIN_NBLOCK_COMMENT
+TEST_F(lexer_fixture, lexer_begin_nblock_comment)
+{
+    static constexpr const char* content =
+        "abc/**!"
+        ;
+    setup_lexer(content);
+
+    token = lexer.next_token();
+    EXPECT_EQ(token->name, symbol_t::TEXT);
+	EXPECT_EQ(token->content, "abc");
+
+    token = lexer.next_token();
+    EXPECT_EQ(token->name, symbol_t::BEGIN_NBLOCK_COMMENT);
+	EXPECT_EQ(token->content, "");
+
+    token = lexer.next_token();
+    EXPECT_EQ(token->name, symbol_t::STAR);
+	EXPECT_EQ(token->content, "");
+
+    token = lexer.next_token();
+    EXPECT_EQ(token->name, symbol_t::TEXT);
+	EXPECT_EQ(token->content, "!");
+
+    // check that there are no more tokens
+    token = lexer.next_token();
+    EXPECT_FALSE(static_cast<bool>(token));
+}
+
+// END_BLOCK_COMMENT
+TEST_F(lexer_fixture, lexer_end_block_comment_no_star)
+{
+    static constexpr const char* content =
+        "abc*/f"
+        ;
+    setup_lexer(content);
+
+    token = lexer.next_token();
+    EXPECT_EQ(token->name, symbol_t::TEXT);
+	EXPECT_EQ(token->content, "abc");
+
+    token = lexer.next_token();
+    EXPECT_EQ(token->name, symbol_t::END_BLOCK_COMMENT);
+	EXPECT_EQ(token->content, "");
+
+    token = lexer.next_token();
+    EXPECT_EQ(token->name, symbol_t::TEXT);
+	EXPECT_EQ(token->content, "f");
+
+    // check that there are no more tokens
+    token = lexer.next_token();
+    EXPECT_FALSE(static_cast<bool>(token));
+}
+
+TEST_F(lexer_fixture, lexer_end_block_comment_star)
+{
+    static constexpr const char* content =
+        "abc**/f"
+        ;
+    setup_lexer(content);
+
+    token = lexer.next_token();
+    EXPECT_EQ(token->name, symbol_t::TEXT);
+	EXPECT_EQ(token->content, "abc");
+
+    token = lexer.next_token();
+    EXPECT_EQ(token->name, symbol_t::STAR);
+	EXPECT_EQ(token->content, "");
+
+    token = lexer.next_token();
+    EXPECT_EQ(token->name, symbol_t::END_BLOCK_COMMENT);
+	EXPECT_EQ(token->content, "");
+
+    token = lexer.next_token();
+    EXPECT_EQ(token->name, symbol_t::TEXT);
+	EXPECT_EQ(token->content, "f");
+
+    // check that there are no more tokens
+    token = lexer.next_token();
+    EXPECT_FALSE(static_cast<bool>(token));
+}
+
+// SDESC
+TEST_F(lexer_fixture, lexer_sdesc)
+{
+    static constexpr const char* content =
+        "ssdesc@@sdescf@sdesscf"
+        ;
+    setup_lexer(content);
+
+    token = lexer.next_token();
+    EXPECT_EQ(token->name, symbol_t::TEXT);
+	EXPECT_EQ(token->content, "ssdesc@");
+
+    token = lexer.next_token();
+    EXPECT_EQ(token->name, symbol_t::SDESC);
+	EXPECT_EQ(token->content, "");
+
+    token = lexer.next_token();
+    EXPECT_EQ(token->name, symbol_t::TEXT);
+	EXPECT_EQ(token->content, "f@sdesscf");
+
+    // check that there are no more tokens
+    token = lexer.next_token();
+    EXPECT_FALSE(static_cast<bool>(token));
+}
+
 ////////////////////////////////////////////////////////////////////
 // Mix TESTS
 ////////////////////////////////////////////////////////////////////
+
+// line comment mix
+TEST_F(lexer_fixture, lexer_line_comment_4)
+{
+    static constexpr const char* content =
+        "abc////"
+        ;
+    setup_lexer(content);
+
+    token = lexer.next_token();
+    EXPECT_EQ(token->name, symbol_t::TEXT);
+	EXPECT_EQ(token->content, "abc");
+
+    token = lexer.next_token();
+    EXPECT_EQ(token->name, symbol_t::BEGIN_SLINE_COMMENT);
+	EXPECT_EQ(token->content, "");
+
+    token = lexer.next_token();
+    EXPECT_EQ(token->name, symbol_t::TEXT);
+	EXPECT_EQ(token->content, "/");
+
+    // check that there are no more tokens
+    token = lexer.next_token();
+    EXPECT_FALSE(static_cast<bool>(token));
+}
+
+// line comment mix
+TEST_F(lexer_fixture, lexer_line_comment_5)
+{
+    static constexpr const char* content =
+        "abc/////"
+        ;
+    setup_lexer(content);
+
+    token = lexer.next_token();
+    EXPECT_EQ(token->name, symbol_t::TEXT);
+	EXPECT_EQ(token->content, "abc");
+
+    token = lexer.next_token();
+    EXPECT_EQ(token->name, symbol_t::BEGIN_SLINE_COMMENT);
+	EXPECT_EQ(token->content, "");
+
+    token = lexer.next_token();
+    EXPECT_EQ(token->name, symbol_t::BEGIN_NLINE_COMMENT);
+	EXPECT_EQ(token->content, "");
+
+    // check that there are no more tokens
+    token = lexer.next_token();
+    EXPECT_FALSE(static_cast<bool>(token));
+}
+
+// line comment mix
+TEST_F(lexer_fixture, lexer_line_comment_6)
+{
+    static constexpr const char* content =
+        "abc//////"
+        ;
+    setup_lexer(content);
+
+    token = lexer.next_token();
+    EXPECT_EQ(token->name, symbol_t::TEXT);
+	EXPECT_EQ(token->content, "abc");
+
+    token = lexer.next_token();
+    EXPECT_EQ(token->name, symbol_t::BEGIN_SLINE_COMMENT);
+	EXPECT_EQ(token->content, "");
+
+    token = lexer.next_token();
+    EXPECT_EQ(token->name, symbol_t::BEGIN_SLINE_COMMENT);
+	EXPECT_EQ(token->content, "");
+
+    // check that there are no more tokens
+    token = lexer.next_token();
+    EXPECT_FALSE(static_cast<bool>(token));
+}
 
 TEST_F(lexer_fixture, lexer_test_1)
 {
