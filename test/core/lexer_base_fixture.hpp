@@ -1,5 +1,4 @@
 #pragma once
-#include "core/lexer_routines.hpp"
 #include <gtest/gtest.h>
 
 namespace docgen {
@@ -8,7 +7,7 @@ namespace core {
 struct lexer_base_fixture : ::testing::Test
 {
 protected:
-    using status_t = lexer_details::status_t;
+    using status_t = status_t;
     using token_t = lexer_details::token_t;
     using symbol_t = lexer_details::symbol_t;
 
