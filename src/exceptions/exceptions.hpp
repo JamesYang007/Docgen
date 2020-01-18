@@ -2,6 +2,7 @@
 
 #include <cstdio>
 #include <cerrno>
+#include <cstring>
 #include <string>
 #include <exception>
 
