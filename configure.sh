@@ -5,6 +5,23 @@ PROJECTDIR=$(dirname "$BASH_SOURCE")
 
 cd "$PROJECTDIR"
 
+# Install nlohmann/json
+if [[ "$OSTYPE" == "linux-gnu" ]]; then
+    if [ $(command -v conan) == "" ]; then
+        echo "config fail: conan not installed"
+        exit 1
+    fi
+    conan install .
+elif [[ "$OSTYPE" == "darwin"* ]]; then
+    if [ $(command -v brew) == "" ]; then
+        echo "config fail: brew not installed"
+        exit 1
+    fi
+    brew install nlohmann-json
+else
+    echo "config fail: unrecognizable OS"
+fi
+
 # If setup.sh was called before
 if [ -d "libs/benchmark/googletest" ]; then
     rm -rf libs/benchmark
