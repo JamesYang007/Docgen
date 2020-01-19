@@ -26,11 +26,11 @@ class Parser
 				IgnoreWorker(symbol_t::BEGIN_NBLOCK_COMMENT, symbol_t::END_BLOCK_COMMENT).ignore_last(),
 				CommentWorker(symbol_t::BEGIN_SLINE_COMMENT, symbol_t::NEWLINE, {
 					TagWorker(),
-					IgnoreWorker({ symbol_t::WHITESPACE }, symbol_t::END_OF_FILE).from_not().timeout(1).limit(1)
+					IgnoreWorker(symbol_t::WHITESPACE, symbol_t::END_OF_FILE).from_not().clear_first().timeout(1).limit(1)
 				}),
 				CommentWorker(symbol_t::BEGIN_SBLOCK_COMMENT, symbol_t::END_BLOCK_COMMENT, {
 					TagWorker(),
-					IgnoreWorker({ symbol_t::WHITESPACE, symbol_t::NEWLINE }, symbol_t::END_OF_FILE).from_not().timeout(1).limit(1),
+					IgnoreWorker({ symbol_t::WHITESPACE, symbol_t::NEWLINE }, symbol_t::END_OF_FILE).from_not().clear_first().timeout(1).limit(1),
 					IgnoreWorker(symbol_t::NEWLINE, { symbol_t::STAR, symbol_t::WHITESPACE, symbol_t::NEWLINE }).until_not()
 				}),
 				FuncWorker()
