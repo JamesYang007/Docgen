@@ -34,15 +34,14 @@ class FuncWorker : public worker_t
 			using token_t = routine_details_t::token_t;
 
 			static constexpr const routine_t on_dec_ = [](worker_t *, const token_t&, dest_t& writer) {
-				if (writer.key_set()) {
+				if (writer.anything_written()) {
 					writer.set_key(DEC_KEY);	
 					writer.start_writing();
 				}
 			};
 			static constexpr const routine_t on_done_ = [](worker_t *worker, const token_t& token, dest_t& writer) {
 				writer.stop_writing();
-				if (writer.key_set()) {
-					writer.clear_key();
+				if (writer.anything_written()) {
 					writer.store(FUNCS_KEY);
 				}
 				if (token == symbol_t::SEMICOLON) {

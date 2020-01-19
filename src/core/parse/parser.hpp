@@ -1,7 +1,5 @@
 #pragma once
 
-#include <vector>
-#include <initializer_list>
 #include <nlohmann/json.hpp>
 #include "core/parse/details.hpp"
 #include "core/parse/internal/comment_worker.hpp"
@@ -25,11 +23,15 @@ class Parser
 			: worker_ {
 				IgnoreWorker(symbol_t::HASHTAG, symbol_t::NEWLINE),
 				IgnoreWorker(symbol_t::BEGIN_NLINE_COMMENT, symbol_t::NEWLINE),
-				IgnoreWorker(symbol_t::BEGIN_NBLOCK_COMMENT, symbol_t::END_BLOCK_COMMENT),
-				CommentWorker(symbol_t::BEGIN_SLINE_COMMENT, symbol_t::NEWLINE, { TagWorker() }),
+				IgnoreWorker(symbol_t::BEGIN_NBLOCK_COMMENT, symbol_t::END_BLOCK_COMMENT).ignore_last(),
+				CommentWorker(symbol_t::BEGIN_SLINE_COMMENT, symbol_t::NEWLINE, {
+					TagWorker(),
+					IgnoreWorker({ symbol_t::WHITESPACE }, symbol_t::END_OF_FILE).from_not().timeout(1).limit(1)
+				}),
 				CommentWorker(symbol_t::BEGIN_SBLOCK_COMMENT, symbol_t::END_BLOCK_COMMENT, {
 					TagWorker(),
-					IgnoreWorker(symbol_t::NEWLINE, symbol_t::STAR).until_not()
+					IgnoreWorker({ symbol_t::WHITESPACE, symbol_t::NEWLINE }, symbol_t::END_OF_FILE).from_not().timeout(1).limit(1),
+					IgnoreWorker(symbol_t::NEWLINE, { symbol_t::STAR, symbol_t::WHITESPACE, symbol_t::NEWLINE }).until_not()
 				}),
 				FuncWorker()
 			}

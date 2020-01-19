@@ -29,7 +29,7 @@ class TagWorker : public worker_t
 			using token_t = routine_details_t::token_t;
 
 			static constexpr const routine_t on_tag_  = [](worker_t *, const token_t& t, dest_t& writer) {
-				writer.set_key(t.content);
+				writer.set_key(t.c_str());
 				writer.start_writing();
 				writer.skip_write();
 			};
