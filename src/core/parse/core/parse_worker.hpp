@@ -162,10 +162,10 @@ class ParseWorker
 		static constexpr size_t INF_ITERS = 0;
 
 		void restart_() { ++itered_; rewind(); }
-		bool done_() const { return handler_i_ == handlers_.size(); }
-		bool working_() const { return handler_i_ >= working_at_ && !done_(); }
 		bool indefinite_() const { return iters_ == INF_ITERS; }
 		bool finished_() const { return !indefinite_() && itered_ >= iters_; }
+		bool done_() const { return handler_i_ == handlers_.size(); }
+		bool working_() const { return handler_i_ >= working_at_ && !finished_(); }
 };
 
 /*
@@ -242,7 +242,6 @@ inline bool ParseWorker<TokenType, DestType>::TokenHandler::proc_workers_(const 
 		}
 	}
 	if (!working_) {
-		bool blocked_temp = false;
 		for (worker_t& p : workers_) {
 			blocked = p.proc(t, d) ? true : blocked;
 			if (p.working_()) {
