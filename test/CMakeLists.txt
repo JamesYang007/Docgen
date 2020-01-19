@@ -3,6 +3,7 @@
 # TEST_TARGET is added as a test and an executable named ${TEST_NAME} will be created.
 function(create_test TEST_NAME TEST_TARGET)
     target_compile_options(${TEST_TARGET} PRIVATE -g -Wall -Werror -Wextra)
+    target_compile_features(${TEST_TARGET} PRIVATE cxx_std_17)
     target_include_directories(${TEST_TARGET}
         PRIVATE
         ${GTEST_DIR}/include

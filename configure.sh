@@ -1,7 +1,8 @@
 #!/bin/bash
 
-# directory where current shell script resides
-PROJECTDIR=$(dirname "$BASH_SOURCE")
+# relative directory where current shell script resides from where shell script was called
+PROJECTDIR="$(cd -P -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd -P)"
+echo "Project directory: $PROJECTDIR"
 
 cd "$PROJECTDIR"
 
@@ -48,13 +49,13 @@ git fetch --all --tags --prune
 git checkout tags/v1.5.0 -b v1.5.0
 cd -
 
-# Build google benchmark
+# Build and install google benchmark locally
 cd libs/benchmark
 mkdir -p build && cd build
-
+cmake_flags="-DCMAKE_INSTALL_PREFIX=$PROJECTDIR/libs/benchmark/build"
 if [ $(command -v ninja) != "" ]; then
-    cmake ../ -GNinja
+    cmake ../ -GNinja $cmake_flags
 else
-    cmake ../
+    cmake ../ $cmake_flags
 fi
-cmake --build . -- -j12
+cmake --build . --target install -- -j12
