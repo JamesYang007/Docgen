@@ -32,7 +32,7 @@ namespace core {
  * Said to be "done" on having completed the current iteration of handlers,
  * and "finished" when the iterations limiter has been exceeded.
  * May be "stalled" s.t. does not move on to the next handler on present match.
- * May be set to "block" parent/grandparents/etc. from matching on token match.
+ * May be set to "block" parent/grandparents/etc. from matching on any match.
  *
  * Object of type DestType is passed by reference to proc(), and is ultimately
  * passed down to handled by user-specified worker routines.
