@@ -11,7 +11,6 @@ namespace internal {
 class IgnoreWorker : public worker_t
 {
 	public:
-		using worker_t = parse::worker_t;
 		using token_t = typename worker_t::token_t;
 		using token_arr_init_t = std::initializer_list<token_t>;
 
@@ -48,7 +47,7 @@ class IgnoreWorker : public worker_t
 		IgnoreWorker& until_not() { handler_at(1).neg(); return *this; }
 		IgnoreWorker& timeout(size_t count) { handler_at(0).timeout(count); return *this; }
 		IgnoreWorker& ignore_last() { handler_at(1).on_match(Routines::on_stop_skip_); return *this; }
-		IgnoreWorker& clear_first() { handler_at(0).on_match(Routines::on_start_clear_); return *this; }
+		IgnoreWorker& clear_key() { handler_at(0).on_match(Routines::on_start_clear_); return *this; }
 
 	private:
 		struct Routines : private routine_details_t

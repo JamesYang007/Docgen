@@ -11,7 +11,6 @@ namespace internal {
 class CommentWorker : public worker_t
 {
 	public:
-		using worker_t = typename parse::worker_t;
 		using token_t = typename worker_t::token_t;
 
 		CommentWorker(const token_t& open, const token_t& close, worker_arr_init_t workers={})

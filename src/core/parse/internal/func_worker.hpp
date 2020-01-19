@@ -11,8 +11,6 @@ namespace internal {
 class FuncWorker : public worker_t
 {
 	public:
-		using worker_t = parse::worker_t;
-
 		FuncWorker()
 			: worker_t {
 				TokenHandler(symbol_t::TEXT, Routines::on_dec_),
@@ -45,8 +43,7 @@ class FuncWorker : public worker_t
 					writer.store(FUNCS_KEY);
 				}
 				if (token == symbol_t::SEMICOLON) {
-					worker->rewind();
-					worker->stall();
+					worker->restart();
 				}
 			};
 		};

@@ -10,8 +10,6 @@ namespace internal {
 class TagWorker : public worker_t
 {
 	public:
-		using worker_t = parse::worker_t;
-
 		TagWorker()
 			: worker_t {
 				TokenHandler({
