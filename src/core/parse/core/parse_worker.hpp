@@ -23,9 +23,9 @@ namespace core {
  * isn't exceeded (unlimited by default); once it is, this ParseWorker is said
  * to be in a "done" state, on which proc() will no longer execute.
  *
- * Said to be in a "working" state when handling a TokenHandler after
- * the first; this only matters to a TokenHandler which is holding
- * this ParseWorker.
+ * Said to be in a "working" state when handling a TokenHandler at/after
+ * the index specified by working_at() (by default, the second);
+ * this only matters to a TokenHandler which is holding this ParseWorker.
  *
  * Object of type DestType is passed by reference to proc(), and is ultimately
  * passed down to specified worker routines.
@@ -137,9 +137,10 @@ class ParseWorker
 		bool proc(const token_t& t, dest_t& f);
 
 		ParseWorker& rewind() { handler().reset_(); handler_i_ = 0; return *this; }
-		ParseWorker& reset() { itered_ = 0; return rewind(); }
+		ParseWorker& reset() { itered_ = 0; return rewind(); }	
 		ParseWorker& block() { blocker_ = true; return *this; }
 		ParseWorker& limit(size_t iters) { iters_ = iters; return *this; }
+		ParseWorker& working_at(size_t i) { working_at_ = i; return *this; }
 		handler_t& handler_at(size_t i) { return handlers_[i % handlers_.size()]; }
 		handler_t& handler(size_t offset) { return handler_at(handler_i_ + offset); }
 		handler_t& handler() { return handler(0); }
@@ -151,6 +152,7 @@ class ParseWorker
 
 	private:
 		size_t iters_ = INF_ITERS;
+		size_t working_at_ = 1;
 		bool blocker_ = false;
 
 		unsigned int handler_i_ = 0;
@@ -159,9 +161,11 @@ class ParseWorker
 
 		static constexpr size_t INF_ITERS = 0;
 
+		void restart_() { ++itered_; rewind(); }
 		bool done_() const { return handler_i_ == handlers_.size(); }
-		bool working_() const { return handler_i_ != 0 && !done_(); }
+		bool working_() const { return handler_i_ >= working_at_ && !done_(); }
 		bool indefinite_() const { return iters_ == INF_ITERS; }
+		bool finished_() const { return !indefinite_() && itered_ >= iters_; }
 };
 
 /*
@@ -171,7 +175,7 @@ class ParseWorker
 template <class TokenType, class DestType>
 inline bool ParseWorker<TokenType, DestType>::proc(const token_t& t, dest_t& d)
 {
-	if (done_()) {
+	if (finished_()) {
 		return false;
 	}
 
@@ -190,16 +194,14 @@ inline bool ParseWorker<TokenType, DestType>::proc(const token_t& t, dest_t& d)
 			++handler_i_;
 
 			if (done_()) {
-				if (indefinite_() || ++itered_ < iters_) {
-					rewind();
-				}
+				restart_();
 			}
 		}
 		stalling_ = false;
 		return blocker_;
 	}
 	else if (handler().time()) {
-		rewind();
+		restart_();
 	}
 
 	return false;
@@ -263,6 +265,7 @@ inline void ParseWorker<TokenType, DestType>::TokenHandler::reset_()
 		w.reset();
 	}
 	match_counter_ = 0;
+	nomatch_counter_ = 0;
 }
 
 } // namespace core
