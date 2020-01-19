@@ -1,5 +1,9 @@
 #!/bin/bash
 
+mode=$1 # debug/release mode
+shift   # shift command-line arguments
+        # the rest are cmake command-line arguments
+
 # relative directory where current shell script resides from where shell script was called
 PROJECTDIR="$(cd -P -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd -P)"
 echo "Project directory: $PROJECTDIR"
@@ -54,8 +58,8 @@ cd libs/benchmark
 mkdir -p build && cd build
 cmake_flags="-DCMAKE_INSTALL_PREFIX=$PROJECTDIR/libs/benchmark/build"
 if [ $(command -v ninja) != "" ]; then
-    cmake ../ -GNinja $cmake_flags
+    cmake ../ -GNinja $cmake_flags "$@"
 else
-    cmake ../ $cmake_flags
+    cmake ../ $cmake_flags "$@"
 fi
 cmake --build . --target install -- -j12
