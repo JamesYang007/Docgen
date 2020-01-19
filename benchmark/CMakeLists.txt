@@ -1,5 +1,6 @@
 add_executable(lexer_benchmark
     ${CMAKE_CURRENT_SOURCE_DIR}/core/lex/lexer_benchmark.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/core/lex/lexer_legacy_benchmark.cpp
     # Source dependency
     $<TARGET_OBJECTS:LEXER_LIB_OBJECTS>
     )

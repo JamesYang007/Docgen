@@ -56,7 +56,7 @@ set(ETERNAL_DIR ${PROJECT_SOURCE_DIR}/libs/eternal)
 find_package(nlohmann_json 3.2.0 REQUIRED)
 
 # find google benchmark
-find_package(benchmark REQUIRED)
+find_package(benchmark REQUIRED PATHS ${GBENCH_DIR}/build)
 
 # add libs subdirectory
 add_subdirectory(${PROJECT_SOURCE_DIR}/libs ${PROJECT_BINARY_DIR}/libs)

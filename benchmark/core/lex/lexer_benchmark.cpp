@@ -1,36 +1,64 @@
 #include <core/lex/lexer.hpp>
-#include <benchmark/benchmark.h>
+#include "lexer_base_fixture.hpp"
 
 namespace docgen {
 namespace core {
 namespace lex {
 
-struct lexer_fixture : benchmark::Fixture 
+struct lexer_fixture : lexer_base_fixture
 {
-    static constexpr const char* data_1_path = "data/data_1.txt";
-    static constexpr const char* data_2_path = "data/data_2.txt";
-    static constexpr const char* data_3_path = "data/data_3.txt";
-
     Lexer lexer;
-
-    void SetUp(const ::benchmark::State& state) 
-    {
-    }
-
-    void TearDown(const ::benchmark::State& state)
-    {
-    }
 };
 
 BENCHMARK_F(lexer_fixture, data_1_test)(benchmark::State& st)
 {
-    std::unique_ptr<FILE, void (*)(FILE*)> file(fopen(data_1_path, "r"), 
-                                                [](FILE* file) {fclose(file);});
-    int c = 0;
     for (auto _ : st) {
-        while ((c = getc(file.get())) != EOF) {
+        std::unique_ptr<FILE, void (*)(FILE*)> file(fopen(data_1_path, "r"), 
+                                                    [](FILE* file) {fclose(file);});
+        int c = 0;
+        while ((c = fgetc(file.get())) != EOF) {
             lexer.process(c);
         }
+        benchmark::DoNotOptimize(lexer.next_token()); 
+    }
+}
+
+BENCHMARK_F(lexer_fixture, data_2_test)(benchmark::State& st)
+{
+    for (auto _ : st) {
+        std::unique_ptr<FILE, void (*)(FILE*)> file(fopen(data_2_path, "r"), 
+                                                    [](FILE* file) {fclose(file);});
+        int c = 0;
+        while ((c = fgetc(file.get())) != EOF) {
+            lexer.process(c);
+        }
+        benchmark::DoNotOptimize(lexer.next_token()); 
+    }
+}
+
+BENCHMARK_F(lexer_fixture, data_3_test)(benchmark::State& st)
+{
+    for (auto _ : st) {
+        std::unique_ptr<FILE, void (*)(FILE*)> file(fopen(data_3_path, "r"), 
+                                                    [](FILE* file) {fclose(file);});
+        int c = 0;
+        while ((c = fgetc(file.get())) != EOF) {
+            lexer.process(c);
+        }
+        benchmark::DoNotOptimize(lexer.next_token()); 
+    }
+}
+
+BENCHMARK_F(lexer_fixture, data_4_test)(benchmark::State& st)
+{
+    for (auto _ : st) {
+        std::unique_ptr<FILE, void (*)(FILE*)> file(fopen(data_4_path, "r"), 
+                                                    [](FILE* file) {fclose(file);});
+        int c = 0;
+        while ((c = fgetc(file.get())) != EOF) {
+            lexer.process(c);
+        }
+        benchmark::DoNotOptimize(lexer.next_token()); 
     }
 }
 
