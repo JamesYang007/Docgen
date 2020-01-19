@@ -9,7 +9,7 @@ namespace core {
 namespace parse {
 namespace core {
 
-/*
+/**
  * A ParseWorker object holds a sequential array of TokenHandler objects;
  * at any given point, only one of these TokenHandlers is being handled.
  *
@@ -38,7 +38,7 @@ namespace core {
  * passed down to handled by user-specified worker routines.
  *
  * TokenType must be compliant with the requirements of std::unordered_set
- */
+ **/
 template <class TokenType, class DestType>
 class ParseWorker
 {
@@ -50,10 +50,10 @@ class ParseWorker
 		using token_t = TokenType;
 		using dest_t = DestType;
 
-		/*
+		/**
 		 * RoutineDetails may be inherited for type aliases
 		 * (routine function pointer and parameter types)
-		 */
+		 **/
 		struct RoutineDetails
 		{
 			using worker_t = ParseWorker;
@@ -62,14 +62,14 @@ class ParseWorker
 			using routine_t = void (*)(worker_t *, const token_t&, dest_t&);
 		};
 
-		/*
+		/**
 		 * A TokenHandler object holds an unordered set of tokens to match against (tokens_),
 		 * a function pointer which references a routine to execute on match (on_match_), and
 		 * an array of ParseWorker objects to process while still unmatched (workers_).
 		 *
 		 * The handler is said to be "done" when the worker may move on, and "timed out" when
 		 * the worker should give up on the current iteration and restart.
-		 */
+		 **/
 		class TokenHandler
 		{
 			friend class ParseWorker;
