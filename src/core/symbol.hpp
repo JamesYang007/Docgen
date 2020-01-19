@@ -32,7 +32,9 @@ enum class Symbol {
 // Compile-time mapping of strings to corresponding symbol
 static MAPBOX_ETERNAL_CONSTEXPR const auto symbol_map = 
     mapbox::eternal::map<Symbol, mapbox::eternal::string>({
+            {Symbol::WHITESPACE, " "},
             {Symbol::SEMICOLON, ";"},
+            {Symbol::HASHTAG, "#"},
             {Symbol::STAR, "*"},
             {Symbol::OPEN_BRACE, "{"},
             {Symbol::CLOSE_BRACE, "}"},
@@ -41,6 +43,10 @@ static MAPBOX_ETERNAL_CONSTEXPR const auto symbol_map =
             {Symbol::BEGIN_NLINE_COMMENT, "//"},
             {Symbol::BEGIN_NBLOCK_COMMENT, "/*"},
             {Symbol::END_BLOCK_COMMENT, "*/"},
+            {Symbol::SDESC, "sdesc"},
+            {Symbol::TPARAM, "tparam"},
+            {Symbol::PARAM, "param"},
+            {Symbol::RETURN, "return"},
     });
 
 } // namespace core
