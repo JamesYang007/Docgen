@@ -5,11 +5,11 @@
 #include "core/parse/parser.hpp"
 #include "parse_file.hpp"
 
+#define BUF_SZ 4096
+
 namespace docgen {
 
 static constexpr const char * const FILENAME_KEY = "name";
-
-static constexpr size_t BUF_SZ = 4096;
 
 void parse_file(const char *path, nlohmann::json& parsed)
 {
