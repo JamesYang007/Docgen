@@ -10,25 +10,25 @@ namespace core {
 
 class JSONWriter {
 	public:
-		template <class StringType>
-		void write(const StringType& s);
-		void write(char c);
-		template <class StringType>
-		void feed(const StringType& s);
+		void write(char c, bool counts=false);
+		void write(const std::string& s, bool counts=true);
+		void feed(const std::string& s);
 		void trim_written();
 		void store(const char *parent_key);
+		void reset_active();
 		void reset();
 
 		void start_writing() { writing_ = true; just_written_ = false; }
-		void stop_writing() { writing_ = false; }
+		void stop_writing() { writing_ = false; trim_written(); }
 		void skip_write() { to_skip_ = true; }
-		void set_key(std::string key) { trim_written(); key_.assign(std::move(key)); just_written_ = false; }
-		void clear_key() { set_key(std::string()); }
-		bool key_set() { return !key_.empty(); }
-		bool writing() { return writing_ && key_set(); }
-		bool skipping() { return to_skip_; }
+		void set_key(const char *key) { trim_written(); key_.assign(key); just_written_ = false; }
+		void clear_key() { set_key(""); }
+		bool key_set() const { return !key_.empty(); }
+		bool writing() const { return writing_ && key_set(); }
+		bool skipping() const { return to_skip_; }
 		bool written() { return key_set() && !val_()->empty(); }
-		bool just_written() { return just_written_; }
+		bool just_written() { return written() && just_written_; }
+		bool anything_written() const { return anything_written_; }
 		nlohmann::json& stored() { return stored_; }
 
 	private:
@@ -36,6 +36,7 @@ class JSONWriter {
 		std::string key_;
 		bool writing_ = false,
 		     just_written_ = false,
+		     anything_written_ = false,
 		     to_skip_ = false;
 
 		std::string *val_()
@@ -47,19 +48,25 @@ class JSONWriter {
 		}
 };
 
-
-template <class StringType>
-inline void JSONWriter::write(const StringType& s)
-{
-	if (key_set()) {
-		val_()->append(s);
-	}
-}
-
-inline void JSONWriter::write(char c)
+inline void JSONWriter::write(char c, bool counts)
 {
 	if (key_set()) {
 		val_()->push_back(c);
+		if (counts) {
+			just_written_ = true;
+			anything_written_ = true;
+		}
+	}
+}
+
+inline void JSONWriter::write(const std::string& s, bool counts)
+{
+	if (key_set()) {
+		val_()->append(s);
+		if (counts) {
+			just_written_ = true;
+			anything_written_ = true;
+		}
 	}
 }
 
@@ -68,16 +75,19 @@ inline void JSONWriter::write(char c)
  * suggested_prepend is the count of whitespaces to be prepended if formatting conditions
  * are met (i.e. if anything has been written since last stop or key change).
  */
-template <class StringType>
-inline void JSONWriter::feed(const StringType& s)
+inline void JSONWriter::feed(const std::string& s)
 {
 	if (writing()){
 		if (!skipping()) {
-			if (written() && !just_written()) {
-				write(' ');
+			if (just_written()) {
+				write(s);
 			}
-			write(s);
-			just_written_ = true;
+			else if (s.find_first_not_of(' ') != std::string::npos) {
+				if (written()) {
+					write(' ');
+				}
+				write(s);
+			}
 		}
 		to_skip_ = false;
 	}
@@ -100,18 +110,24 @@ inline void JSONWriter::store(const char *parent_key)
 	if (!active_.is_null()) {
 		trim_written();
 		stored_[parent_key].push_back(std::move(active_));
-		active_.clear();
 	}
+	reset_active();
+}
+
+inline void JSONWriter::reset_active()
+{
+	active_.clear();
+	key_.clear();
+	writing_ = false;
+	just_written_ = false;
+	anything_written_ = false;
+	to_skip_ = false;
 }
 
 inline void JSONWriter::reset()
 {
 	stored_.clear();
-	active_.clear();
-	key_.clear();
-	writing_ = false;
-	just_written_ = false;
-	to_skip_ = false;
+	reset_active();
 }
 
 } // core
