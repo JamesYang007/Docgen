@@ -35,5 +35,22 @@ inline const char* Token<Symbol>::c_str() const
         symbol_map.at(name).c_str() : content.c_str();
 }
 
+inline bool operator==(const Token<Symbol>& t1, const Token<Symbol>& t2) {
+	return t1.name == t2.name;
+}
+
 } // namespace core
 } // namespace docgen
+
+namespace std {
+	
+template <>
+struct hash<docgen::core::Token<docgen::core::Symbol>>
+{
+	size_t operator()(const docgen::core::Token<docgen::core::Symbol>& t) const
+	{
+		return hash<size_t>()(static_cast<size_t>(t.name));
+	}
+};
+
+} // namespace std
