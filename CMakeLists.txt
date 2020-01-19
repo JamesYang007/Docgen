@@ -6,15 +6,16 @@ project("Docgen" VERSION 1.0.0
 # This will perform memcheck
 include(CTest)
 
+# enables testing
+enable_testing()
+
 # This is to make this library portable to other machines.
 # This will be used for install.
 include(GNUInstallDirs)
 
-# enables testing
-enable_testing()
-
-# Set C++17 standard for project target
-set(CMAKE_CXX_STANDARD 17)
+# Set this such that dependency installation through conan can be found
+set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/libs)
+message("CMAKE_MODULE_PATH: ${CMAKE_MODULE_PATH}")
 
 # Create DocgenConfigVersion.cmake which contains current project version
 # This is supposed to help with (major) version compatibility.
@@ -54,8 +55,17 @@ set(ETERNAL_DIR ${PROJECT_SOURCE_DIR}/libs/eternal)
 # find json library
 find_package(nlohmann_json 3.2.0 REQUIRED)
 
+# find google benchmark
+find_package(benchmark REQUIRED PATHS ${GBENCH_DIR}/build)
+
 # add libs subdirectory
 add_subdirectory(${PROJECT_SOURCE_DIR}/libs ${PROJECT_BINARY_DIR}/libs)
+
+# add src subdirectory
+add_subdirectory(${PROJECT_SOURCE_DIR}/src ${PROJECT_BINARY_DIR}/src)
+
+# add benchmark subdirectory
+add_subdirectory(${PROJECT_SOURCE_DIR}/benchmark ${PROJECT_BINARY_DIR}/benchmark)
 
 # add test subdirectory
 add_subdirectory(${PROJECT_SOURCE_DIR}/test ${PROJECT_BINARY_DIR}/test)

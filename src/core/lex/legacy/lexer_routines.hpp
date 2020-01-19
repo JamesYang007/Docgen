@@ -1,14 +1,14 @@
 #pragma once
-#include "token.hpp"
-#include "status.hpp"
-#include "symbol.hpp"
+#include "core/lex/legacy/token.hpp"
+#include "core/lex/legacy/status.hpp"
+#include "core/lex/legacy/symbol.hpp"
 #include "io/file_reader.hpp"
-#include "tag_set.hpp"
-#include <iostream>
+#include "core/tag_set.hpp"
 
 namespace docgen {
 namespace core {
-namespace lexer_details {
+namespace lex {
+namespace legacy {
 
 static constexpr size_t DEFAULT_STRING_RESERVE_SIZE = 50;
 
@@ -295,6 +295,7 @@ inline void process(file_reader& reader, status_t& status)
     status.tokens.emplace_back(token_t::symbol_t::END_OF_FILE);
 }
 
-} // namespace lexer_details
+} // namespace legacy
+} // namespace lex
 } // namespace core
 } // namespace docgen

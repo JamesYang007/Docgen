@@ -6,9 +6,9 @@ namespace core {
 
 struct Lexer
 {
-    using symbol_t = lexer_details::symbol_t;
-    using file_reader = lexer_details::file_reader;
-    using status_t = lexer_details::status_t;
+    using symbol_t = lex::legacy::symbol_t;
+    using file_reader = lex::legacy::file_reader;
+    using status_t = lex::legacy::status_t;
 
     Lexer(FILE* file)
         : reader_(file)
@@ -18,7 +18,7 @@ struct Lexer
 
     void process()
     {
-        lexer_details::process(reader_, status_);
+        lex::legacy::process(reader_, status_);
     }
     
     const status_t::token_arr_t& get_tokens() const

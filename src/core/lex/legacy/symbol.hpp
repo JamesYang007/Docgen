@@ -1,30 +1,27 @@
 #pragma once
 #include <mapbox/eternal.hpp>
+#include <unordered_set>
+#include <string>
 
 namespace docgen {
 namespace core {
+namespace lex {
+namespace legacy {
 
 enum class Symbol {
     // single-char tokens
     END_OF_FILE,
     NEWLINE,
-    WHITESPACE,
     SEMICOLON,
-    HASHTAG,
     STAR,
     OPEN_BRACE,
     CLOSE_BRACE,
     // string tokens
-    BEGIN_SLINE_COMMENT,
-    BEGIN_SBLOCK_COMMENT,
-    BEGIN_NLINE_COMMENT,
-    BEGIN_NBLOCK_COMMENT,
+    BEGIN_LINE_COMMENT,
+    BEGIN_BLOCK_COMMENT,
     END_BLOCK_COMMENT,
     // special tags
-    SDESC,
-    TPARAM,
-    PARAM,
-    RETURN,
+    TAGNAME,
     // default
     TEXT
 };
@@ -36,12 +33,12 @@ static MAPBOX_ETERNAL_CONSTEXPR const auto symbol_map =
             {Symbol::STAR, "*"},
             {Symbol::OPEN_BRACE, "{"},
             {Symbol::CLOSE_BRACE, "}"},
-            {Symbol::BEGIN_SLINE_COMMENT, "///"},
-            {Symbol::BEGIN_SBLOCK_COMMENT, "/*!"},
-            {Symbol::BEGIN_NLINE_COMMENT, "//"},
-            {Symbol::BEGIN_NBLOCK_COMMENT, "/*"},
+            {Symbol::BEGIN_LINE_COMMENT, "///"},
+            {Symbol::BEGIN_BLOCK_COMMENT, "/*!"},
             {Symbol::END_BLOCK_COMMENT, "*/"},
     });
 
+} // namespace legacy
+} // namespace lex
 } // namespace core
 } // namespace docgen
