@@ -24,8 +24,8 @@ class FuncWorker : public worker_t
 		{}
 
 	private:
-		static constexpr const char *FUNCS_KEY = "functions";
-		static constexpr const char *DEC_KEY = "declaration";
+		static constexpr const char * const FUNCS_KEY = "functions";
+		static constexpr const char * const DEC_KEY = "declaration";
 
 		struct Routines : private routine_details_t
 		{

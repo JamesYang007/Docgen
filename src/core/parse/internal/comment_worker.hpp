@@ -21,7 +21,7 @@ class CommentWorker : public worker_t
 		{}
 
 	private:
-		static constexpr const char *DEFAULT_KEY = "desc";
+		static constexpr const char * const DEFAULT_KEY = "desc";
 
 		struct Routines : private routine_details_t
 		{
