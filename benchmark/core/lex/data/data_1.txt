@@ -21,6 +21,7 @@ Lexer::Lexer()
             {"*", Symbol::STAR},
             {"{", Symbol::OPEN_BRACE},
             {"}", Symbol::CLOSE_BRACE},
+            {"/", Symbol::FORWARD_SLASH},
             {"///", Symbol::BEGIN_SLINE_COMMENT},
             {"/*!", Symbol::BEGIN_SBLOCK_COMMENT},
             {"//", Symbol::BEGIN_NLINE_COMMENT},

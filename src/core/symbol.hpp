@@ -14,6 +14,7 @@ enum class Symbol {
     STAR,
     OPEN_BRACE,
     CLOSE_BRACE,
+    FORWARD_SLASH,
     // string tokens
     BEGIN_SLINE_COMMENT,
     BEGIN_SBLOCK_COMMENT,
@@ -38,6 +39,7 @@ static MAPBOX_ETERNAL_CONSTEXPR const auto symbol_map =
             {Symbol::STAR, "*"},
             {Symbol::OPEN_BRACE, "{"},
             {Symbol::CLOSE_BRACE, "}"},
+            {Symbol::FORWARD_SLASH, "/"},
             {Symbol::BEGIN_SLINE_COMMENT, "///"},
             {Symbol::BEGIN_SBLOCK_COMMENT, "/*!"},
             {Symbol::BEGIN_NLINE_COMMENT, "//"},
