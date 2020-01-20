@@ -55,3 +55,12 @@ add_executable(core_unittests
 create_test("core_unittests" core_unittests)
 
 
+######################################################
+# Experimental Unit Tests
+######################################################
+
+add_executable(experimental_unittests
+               ${CMAKE_CURRENT_SOURCE_DIR}/core/lex/string_array_utils_unittest.cpp
+               )
+
+create_test("experimental_unittests" experimental_unittests)
