@@ -31,7 +31,6 @@ namespace core {
  * at a time.
  * Said to be "done" on having completed the current iteration of handlers,
  * and "finished" when the iterations limiter has been exceeded.
- * May be "stalled" s.t. does not move on to the next handler on present match.
  * May be set to "block" parent/grandparents/etc. from matching on any match.
  *
  * Object of type DestType is passed by reference to proc(), and is ultimately
@@ -179,10 +178,9 @@ class ParseWorker
 		handler_t& handler_next() { return handler(1); } // access next handler
 
 		/*** PUBLIC HELPERS ***/// these are public so that they may be used by worker routines
-		void stall() { stalling_ = true; } // "stall" such that currently matched handler doesn't proceed to next
 		void rewind() { handler().reset_(); handler_i_ = 0; } // rewind to first handler
 		void restart() { ++itered_; rewind(); } // rewind and count iteration
-		void reset() { itered_ = 0; stalling_ = false; rewind(); } // rewind reset state indicators
+		void reset() { itered_ = 0; rewind(); } // rewind reset state indicators
 
 	private:
 		/*** MEMBERS ***/
@@ -190,7 +188,6 @@ class ParseWorker
 
 		/*** STATE ***/
 		unsigned int handler_i_ = 0; // index of the current handler
-		bool stalling_ = false; // dictates if worker is "stalled" from moving to next handler
 		size_t itered_ = 0; // the number of iterations completed/attempted
 
 		/*** SETTINGS ***/
@@ -228,8 +225,8 @@ inline bool ParseWorker<TokenType, DestType>::proc(const token_t& t, dest_t& d)
 			handler().on_match_(this, t, d);
 		}
 
-		// if current handler is "done" and worker isn't being "stalled", move on to next handler
-		if (handler().done_() && !stalling_) {
+		// if current handler is "done" then move on to next handler
+		if (handler().done_()) {
 			handler().reset_();
 			++handler_i_;
 
@@ -238,7 +235,6 @@ inline bool ParseWorker<TokenType, DestType>::proc(const token_t& t, dest_t& d)
 				restart();
 			}
 		}
-		stalling_ = false;
 
 		// if worker is set "blocking", return true to block ancestors from matching
 		return blocker_;
