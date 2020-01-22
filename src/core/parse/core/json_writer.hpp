@@ -1,6 +1,7 @@
 #pragma once
 
 #include <string>
+#include <vector>
 #include <nlohmann/json.hpp>
 
 namespace docgen {
@@ -14,11 +15,17 @@ namespace core {
  * it is formatted, as strings are fed in and state is manipulated by public helpers.
  *
  * A "continuous write session" is said to be when writes have been uninterrupted by
- * a stop or a change to the currently handled key. The JSONWriter will not make any
- * attempt to regulate spacing when in this state.
+ * a stop, a change to the currently handled key, or any storing/stowing of the current
+ * JSON being actively written to. The JSONWriter will not make an attempt to regulate
+ * spacing when in this state.
  **/
 class JSONWriter {
 	public:
+		JSONWriter()
+		{
+			stowed_.reserve(10); // this really only needs to be as big as the JSON depth might go from active_ (so usually only 2-3 in actuality)
+		}
+
 		/*
 		 * Writes a string/character to the JSON value currently being handled.
 		 * Boolean may be passed to indicate if this is a substantive write
@@ -40,51 +47,60 @@ class JSONWriter {
 		/*
 		 * Trims the value currently being written of any trailing whitespace,
 		 * and erases the key if value is ultimately empty.
+		 * Signifies end of "write session" for cleaning up and executing whatever
+		 * is necessary.
 		 */
-		void trim_written();
+		void cleanup_written();
 
 		/*
-		 * Store the current active_ JSON by moving it into destination JSON array at the
-		 * passed parent_key; if active_ is empty or value at parent_key is set to anything
-		 * other than an array, nothing will be done.
+		 * Store the current active_ JSON by moving it into destination JSON at the
+		 * passed at_key; if this key's value is unassigned, to_arr dictates whether
+		 * to push content on as array at key or to simply assign at key. If active_
+		 * is empty, nothing will be done.
 		 * active_ and all state elements are reset on success.
 		 */
-		void store(const char *parent_key, nlohmann::json& dest);
+		void store_to(nlohmann::json& dest_container, const char *at_key, bool to_arr=false);
 
 		/*
 		 * Stow the active_ JSON to be held in stowed_. If anything is currently stowed,
 		 * it is first unstowed. Anything subsequently written to active_ will ultimately
-		 * be appended at the passed unstow_key when content is unstowed, s.t. content is
-		 * stowed for writing sub-content at this key (hence the name "stow_for()".
+		 * be assigned (or appended if push_back) at the passed unstow_key when content
+		 * is unstowed, s.t. content is stowed for writing sub-content at this key. This
+		 * has the effect of "going into" the JSON element.
 		 * active_ and all state elements are reset.
 		 */
-		void stow_for(const char *unstow_key);
+		void go_into(const char *unstow_key, bool push_back=false);
 
 		/*
-		 * If anything is stowed, move stowed_ back as active_ JSON; anything in active_ will
-		 * be appended at the key set by call to stow_for().
-		 * unstow_key_ is reset, and on success, all state elements are reset.
+		 * If anything is stowed, move top stowed_ back as active_ JSON; anything
+		 * in active_ will be appended at the key set by call to stow_for().
+		 * unstow elements are reset, and on success, all state elements are reset.
 		 */
-		void unstow();
+		void back_out();
 
 		/*
-		 * Clear current active_ JSON and reset all state elements.
+		 * Clear current active_ JSON and reset pertinent state elements.
 		 */
 		void reset_active();
 
 		/*
-		 * Clear stored_ JSON and reset_active().
+		 * Clear current active_ and stowed_ JSONs, and reset all state elements.
+		 */
+		void reset_state();
+
+		/*
+		 * Clear stored_ JSON and reset state.
 		 */
 		void reset();
 
 		/*** STATE SETTERS ***/
-		void start_writing() { writing_ = true; just_written_ = false; } // set fed strings to be written to JSON
-		void stop_writing() { writing_ = false; trim_written(); } // set fed strings to be disregarded
+		void start_writing() { cleanup_written(); writing_ = true; } // set fed strings to be written to JSON
+		void stop_writing() { writing_ = false; } // set fed strings to be disregarded
 		void skip_write() { to_skip_ = true; } // set for the next fed string to be skipped/disregarded
-		void set_key_active(const char *key) { trim_written(); key_.assign(key); just_written_ = false; } // set the JSON key to be currently handled
-		void set_key(const char *key) { unstow(); set_key_active(key); } // set the JSON key for main JSON (by first unstowing in case stowed)
-		void clear_key() { set_key(""); } // clear the currently handled key for main JSON
-		void store(const char *parent_key) { unstow(); store(parent_key, stored_); } // store main JSON to stored_ (by first unstowing in case stowed)
+		void pushback_write() { to_pushback_ = true; } // set to begin writing value on back of current key's array; if current key is not array, no effect
+		void set_key(const char *key) { cleanup_written(); key_.assign(key); } // set the currently handled JSON key
+		void clear_key() { set_key(""); } // clear the currently handled key
+		void next_back_out() { pending_back_out_ = true; } // set to back out at end of current "write session"
 
 		/*** STATE GETTERS ***/
 		bool key_set() const { return !key_.empty(); } // check if a JSON key is set
@@ -93,31 +109,77 @@ class JSONWriter {
 		bool written() { return key_set() && !val_()->empty(); } // check if anything has been written to the currently handled value
 		bool just_written() { return written() && just_written_; } // check if anything has been written since last "write session"
 		bool anything_written() const { return !active_.empty(); } // check if anything has been written to active_
-		bool anything_stowed() const { return !stowed_.empty(); }
+		bool at_top() const { return stowed_.empty(); } // checks if anything is currently stowed
 		nlohmann::json& stored() { return stored_; } // returns a reference to the internal stored_ JSON
+		const nlohmann::json& stored() const { return stored_; } // returns a const reference to the internal stored_ JSON
+
+		/*** HELPERS ***/
+		void store_to(const char *at_key, bool pushback=false) { store_to(store_dest_(), at_key, pushback); } // store active_ to current store destination
+		void store_to_pushback(const char *at_key) { store_to(at_key, true); } // pushback JSON to store rather than assigning
+		void go_into_this() { go_into(nullptr); }
+		void go_into_pushback(const char *unstow_key) { go_into(unstow_key, true); } // stow for key to be appended to (as array) rather than assigned
 
 	private:
 		/*** STATE ***/
 		nlohmann::json stored_, // JSON for what is stored throughout the lifetime of this writer
-		               stowed_, // JSON for actively written JSON to be temporarily stowed when necessary
 		               active_; // JSON that is currently being populated
-		std::string key_, // the key whose value is currently being written	
-		            unstow_key_; // the key at which active_ content will be appended when unstowing
+		std::string key_; // the key whose value is currently being written	
 		bool writing_ = false, // dictates where fed strings will be written to JSON
 		     just_written_ = false, // tracks whether or not anything has been written since "write session"
-		     to_skip_ = false; // may be set to skip the next fed string
-
+		     to_skip_ = false, // may be set to skip the next fed string
+		     to_pushback_ = false, // may be set for writing to back of key's array
+		     pending_back_out_ = false; // may be set for backing out at end of current "write session"
+		
 		/*
 		 * Returns a pointer to the active_ JSON's currently handled string value,
-		 * which is determined by key_
+		 * which is determined by key_.
 		 */
 		std::string *val_()
 		{
-			if (active_[key_].is_null()) {
-				active_[key_] = ""; // this is necessary for the JSON to register the value as a string before appending
+			nlohmann::json& cur = active_[key_];
+			std::string *ptr;
+
+			if (cur.is_null()) {
+				if (to_pushback_) {
+					cur.push_back("");
+					ptr = cur.back().get_ptr<std::string *>();
+				}
+				else {
+					cur = "";
+					ptr = cur.get_ptr<std::string *>();
+				}
 			}
-			return active_[key_].template get_ptr<std::string *>();
+			else if (cur.is_array()) {
+				if (to_pushback_ || cur.empty()) {
+					cur.push_back("");
+				}
+				ptr = cur.back().get_ptr<std::string *>();
+			}
+			else {
+				ptr = cur.get_ptr<std::string *>();
+			}
+
+			to_pushback_ = false;
+			return ptr;
 		}
+
+		/*
+		 * Packs all necessary information/content for JSON data to be stowed.
+		 */
+		struct StowPack_
+		{
+			nlohmann::json stowed; // JSON for stowed content
+			std::string unstow_key; // the key at which active_ content will be assigned when unstowing
+			bool unstow_pushback; // may be set for unstowed content to be pushed back to array rather than assigned
+
+			StowPack_(nlohmann::json&& s, const char *k, bool p)
+				: stowed(std::move(s)), unstow_key(k), unstow_pushback(p)
+			{}
+		};
+		std::vector<StowPack_> stowed_; // JSONs for actively written JSON to be temporarily stowed; used to implement go_into() going deeper into the JSON
+
+		/*** HELPERS ***/
+		nlohmann::json& store_dest_() { return at_top() ? stored_ : stowed_.back().stowed; } // store destination is top stowed_ json or stored_ if none present
 };
 
 template <class StringType>
@@ -147,7 +209,9 @@ inline void JSONWriter::feed(const std::string& s)
 		if (!skipping()) {
 			size_t start_pos;
 			if (just_written()) { // if in a "continuous write session", write regardless
-				write(s);
+				if (!s.empty()) {
+					write(s);
+				}
 			}
 			else if ((start_pos = s.find_first_not_of(' ')) != std::string::npos) { // otherwise write from non-whitespace
 				if (written()) { // if something has already been written to the current value, separate with a space
@@ -160,47 +224,76 @@ inline void JSONWriter::feed(const std::string& s)
 	}
 }
 
-inline void JSONWriter::trim_written()
+inline void JSONWriter::cleanup_written()
 {
 	if (key_set()) {
 		// trim any trailing whitespace
-		while (!val_()->empty() && std::isspace(val_()->back())) {
-			val_()->pop_back();
+		std::string *val = val_();
+		while (!val->empty() && std::isspace(val->back())) {
+			val->pop_back();
 		}
 		// erase currently handled key from active_ JSON if value is empty
-		if (val_()->empty()) {
-			active_.erase(key_);
+		if (val->empty()) {
+			nlohmann::json& cur = active_[key_];
+			if (cur.is_array()) {
+				active_.erase(cur.end()-1);
+			}
+			else {
+				active_.erase(key_);
+			}
 		}
 	}
+	// cleanup "write session" elements
+	just_written_ = false;
+	to_skip_ = false;
+	to_pushback_ = false;
+	if (pending_back_out_) {
+		pending_back_out_ = false;
+		back_out();
+	}
+
 }
 
-inline void JSONWriter::store(const char *parent_key, nlohmann::json& dest)
+inline void JSONWriter::store_to(nlohmann::json& dest_container, const char *at_key, bool to_arr)
 {
-	nlohmann::json& dest_arr = dest[parent_key];
-	if (anything_written() && (dest_arr.is_null() || dest_arr.is_array())) {
-		trim_written();
-		dest_arr.push_back(std::move(active_));
+	cleanup_written();
+	if (anything_written()) {
+		nlohmann::json& dest = dest_container[at_key];
+		if (dest.is_null()) {
+			if (to_arr) {
+				dest.push_back(std::move(active_));
+			}
+			else {
+				dest = std::move(active_);
+			}
+		}
+		else if (dest.is_array()) {
+			dest.push_back(std::move(active_));
+		}
+		else {
+			dest = std::move(active_);
+		}
 		reset_active();
 	}
 }
 
-inline void JSONWriter::stow_for(const char *unstow_key)
+inline void JSONWriter::go_into(const char *unstow_key, bool pushback)
 {
-	if (anything_stowed()) {
-		unstow();
-	}
-	unstow_key_.assign(unstow_key);
-	stowed_ = std::move(active_);
+	cleanup_written();
+	stowed_.push_back(StowPack_(std::move(active_), unstow_key ? unstow_key : "", pushback));
 	reset_active();
 }
 
-inline void JSONWriter::unstow()
+inline void JSONWriter::back_out()
 {
-	if (anything_stowed()) {
-		store(unstow_key_.c_str(), stowed_);
-		active_ = std::move(stowed_);
+	if (!at_top()) {
+		StowPack_& cur = stowed_.back();
+		if (!cur.unstow_key.empty()) {
+			store_to(cur.stowed, cur.unstow_key.c_str(), cur.unstow_pushback);
+		}
+		active_ = std::move(cur.stowed);
+		stowed_.pop_back();
 	}
-	unstow_key_.clear();
 }
 
 inline void JSONWriter::reset_active()
@@ -210,12 +303,19 @@ inline void JSONWriter::reset_active()
 	writing_ = false;
 	just_written_ = false;
 	to_skip_ = false;
+	to_pushback_ = false;
+}
+
+inline void JSONWriter::reset_state()
+{
+	stowed_.clear();
+	reset_active();
 }
 
 inline void JSONWriter::reset()
 {
 	stored_.clear();
-	reset_active();
+	reset_state();
 }
 
 } // core
