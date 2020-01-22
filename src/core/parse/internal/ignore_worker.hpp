@@ -42,12 +42,18 @@ class IgnoreWorker : public worker_t
 			}
 		{}
 
-		IgnoreWorker& balanced() { handler_at(1).on_match(Routines::on_stop_balanced_); handler_at(1).inject_token(handler_at(0).token()); return *this; }
 		IgnoreWorker& from_not() { handler_at(0).neg(); return *this; }
 		IgnoreWorker& until_not() { handler_at(1).neg(); return *this; }
 		IgnoreWorker& timeout(size_t count) { handler_at(0).timeout(count); return *this; }
 		IgnoreWorker& ignore_last() { handler_at(1).on_match(Routines::on_stop_skip_); return *this; }
 		IgnoreWorker& clear_key() { handler_at(0).on_match(Routines::on_start_clear_); return *this; }
+		IgnoreWorker& balanced()
+		{
+			handler_at(1).on_match(Routines::on_stop_balanced_);
+			handler_at(1).add_token(handler_at(0).token());
+			on_cleanup(Routines::on_cleanup_balanced_);
+			return *this;
+		}
 
 	private:
 		struct Routines : private routine_details_t
@@ -72,11 +78,15 @@ class IgnoreWorker : public worker_t
 			};
 			static constexpr const routine_t on_stop_balanced_ = [](worker_t *worker, const token_t& token, dest_t& d) {
 				if (token == worker->handler_at(0).token()) {
-					worker_t::handler_t& close_handler = worker->handler_at(1);
-					close_handler.tolerance(close_handler.tolerance() + 2);
+					worker->handler().tolerance(worker->handler().tolerance() + 2);
 					return;
 				}
-				on_stop_(worker, token, d);
+				else if (worker->handler().done()) {
+					on_stop_(worker, token, d);
+				}
+			};
+			static constexpr const routine_t on_cleanup_balanced_ = [](worker_t *worker, const token_t&, dest_t&) {
+				worker->handler_at(1).tolerance(1);
 			};
 		};
 };
