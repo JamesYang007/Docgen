@@ -39,11 +39,9 @@ class FuncWorker : public worker_t
 			};
 			static constexpr const routine_t on_done_ = [](worker_t *worker, const token_t& token, dest_t& writer) {
 				writer.stop_writing();
-				if (writer.anything_written()) {
-					writer.store(FUNCS_KEY);
-				}
+				writer.store_to_pushback(FUNCS_KEY);
 				if (token == symbol_t::SEMICOLON) {
-					worker->restart();
+					worker->restart(token, writer);
 				}
 			};
 		};
