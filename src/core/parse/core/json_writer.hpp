@@ -116,7 +116,7 @@ class JSONWriter {
 		/*** HELPERS ***/
 		void store_to(const char *at_key, bool pushback=false) { store_to(store_dest_(), at_key, pushback); } // store active_ to current store destination
 		void store_to_pushback(const char *at_key) { store_to(at_key, true); } // pushback JSON to store rather than assigning
-		void go_into_this() { go_into(nullptr); }
+		void go_into_this() { go_into(nullptr); } // stow the current active_ JSON such that it can be stored to; no key is specified for returning to
 		void go_into_pushback(const char *unstow_key) { go_into(unstow_key, true); } // stow for key to be appended to (as array) rather than assigned
 
 	private:
