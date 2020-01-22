@@ -61,6 +61,8 @@ class ParseWorker
 			using routine_t = void (*)(worker_t *, const token_t&, dest_t&);
 		};
 
+		using routine_t = typename RoutineDetails::routine_t;
+
 		/**
 		 * A TokenHandler object holds an unordered set of tokens to match against (tokens_),
 		 * a function pointer which references a routine to execute on match (on_match_), and
@@ -75,8 +77,6 @@ class ParseWorker
 			public:	
 				using token_set_t = std::unordered_set<token_t>;
 				using token_arr_init_t = std::initializer_list<token_t>;
-
-				using routine_t = typename RoutineDetails::routine_t;
 
 				explicit TokenHandler(token_arr_init_t t, routine_t on_m=nullptr, worker_arr_init_t w={})
 					: tokens_(t), on_match_(on_m), workers_(w)
@@ -109,13 +109,35 @@ class ParseWorker
 
 				/*** PUBLIC HELPERS ***/// these are public so they may be used by routines or ParseWorker inheritors
 				void on_match(routine_t on_m) { on_match_ = on_m; } // set routine to execute on match
-				void inject_token(const token_t& t) { tokens_.insert(t); } // inject token into tokens_ set by const reference
-				void inject_token(token_t&& t) { tokens_.insert(std::move(t)); } // inject token into tokens_ set by r-value
+				void add_token(const token_t& t) { tokens_.insert(t); } // inject token into tokens_ set by const reference
+				void add_token(token_t&& t) { tokens_.insert(std::move(t)); } // inject token into tokens_ set by r-value
+				void inject_worker(const worker_t& w) { workers_.push_back(w); ++injected_worker_counter_; }
+				void inject_worker(worker_t&& w) { workers_.push_back(std::move(w)); ++injected_worker_counter_; }
+				void eject_workers() { while (injected_worker_counter_) { workers_.pop_back(); --injected_worker_counter_; } }
 				const token_t& token() { return *tokens_.begin(); } // get token (only useful if there is just one token in tokens_)
+				worker_t& worker_at(size_t i) { return workers_[i]; } // get reference to worker at index
 				size_t tolerance() { return match_tolerance_; } // get handler's match tolerance
 				size_t timeout() { return mismatch_timeout_; } // get handler's mismatch timeout
+				bool done() { return match_counter_ >= match_tolerance_; } // return if handler's match tolerance has been met
+				bool time() { return mismatch_timeout_ == INF_ITERS ? false : mismatch_counter_ >= mismatch_timeout_; } // return if handler has timed out
 
 			private:
+				/*** MEMBERS ***/
+				token_set_t tokens_; // set of tokens to match against
+				routine_t on_match_; // routine to be executed on match
+				worker_arr_t workers_; // set of children workers
+
+				/*** STATE ***/
+				size_t match_counter_ = 0; // tracks match count
+				size_t mismatch_counter_ = 0; //  tracks mismatch count
+				size_t injected_worker_counter_ = 0;
+				worker_t *working_ = nullptr; // points to the child worker that is presently "working"
+
+				/*** SETTINGS ***/
+				size_t match_tolerance_ = 1; // dictates how many matches are required before handler is "done"
+				size_t mismatch_timeout_ = INF_ITERS; // dictates how many mismatches before handler is "timed out"
+				bool neg_ = false; // if set true, a given symbol will only match if it is not in tokens_
+
 				/*
 				 * Process all contained ParseWorker objects when none are "working";
 				 * if one is, process only that one until it is done.
@@ -126,38 +148,19 @@ class ParseWorker
 				/*
 				 * Reset all contained ParseWorker objects and all state indicators.
 				 */
-				void reset_();
-
-				/*** MEMBERS ***/
-				token_set_t tokens_; // set of tokens to match against
-				routine_t on_match_; // routine to be executed on match
-				worker_arr_t workers_; // set of children workers
-
-				/*** STATE ***/
-				size_t match_counter_ = 0; // tracks match count
-				size_t mismatch_counter_ = 0; //  tracks mismatch count
-				worker_t *working_ = nullptr; // points to the child worker that is presently "working"
-
-				/*** SETTINGS ***/
-				size_t match_tolerance_ = 1; // dictates how many matches are required before handler is "done"
-				size_t mismatch_timeout_ = INF_ITERS; // dictates how many mismatches before handler is "timed out"
-				bool neg_ = false; // if set true, a given symbol will only match if it is not in tokens_
-
-				/*** HELPERS ***/
-				bool done_() { return match_counter_ >= match_tolerance_; } // return if handler's match tolerance has been met
-				bool time_() { return mismatch_timeout_ == INF_ITERS ? false : mismatch_counter_ >= mismatch_timeout_; } // return if handler has timed out
+				void reset_(const token_t& cur_t, dest_t& cur_d);
 		};
 
 		using handler_t = TokenHandler;
 		using handler_arr_t = std::vector<handler_t>;
 		using handler_arr_init_t = std::initializer_list<handler_t>;
 
-		explicit ParseWorker(handler_arr_init_t handlers)
-			: handlers_(std::move(handlers))
+		explicit ParseWorker(handler_arr_init_t handlers, routine_t on_c=nullptr)
+			: handlers_(std::move(handlers)), on_cleanup_(on_c)
 		{}
 
-		explicit ParseWorker(worker_arr_init_t workers)
-			: ParseWorker({ TokenHandler(std::move(workers)) })
+		explicit ParseWorker(worker_arr_init_t workers, routine_t on_c=nullptr)
+			: ParseWorker({ TokenHandler(std::move(workers)) }, on_c)
 		{}
 
 		/*
@@ -170,6 +173,8 @@ class ParseWorker
 		ParseWorker& limit(size_t iters) { iters_ = iters; return *this; } // limit this worker's start-to-finish iterations
 		ParseWorker& block() { blocker_ = true; return *this; } // set this worker to block parent, grandparents, etc. from matching on token match
 		ParseWorker& working_at(size_t i) { working_at_ = i; return *this; } // set handler index at which this worker is "working" (to block sibling workers from processing)
+		ParseWorker& inject_worker_at(size_t i, const worker_t& w) { handler_at(i).inject_worker(w); return *this; } // inject worker into handler at index (by const reference)
+		ParseWorker& inject_worker_at(size_t i, worker_t&& w) { handler_at(i).inject_worker(std::move(w)); return *this; } // inject worker into handler at index (by r-value)
 
 		/*** HANDLER ACCESS ***//// public access for private array handlers_
 		handler_t& handler_at(size_t i) { return handlers_[i % handlers_.size()]; } // safely access handler by index (wraparound if out of bounds)
@@ -177,14 +182,19 @@ class ParseWorker
 		handler_t& handler() { return handler(0); } // access current handler
 		handler_t& handler_next() { return handler(1); } // access next handler
 
-		/*** PUBLIC HELPERS ***/// these are public so that they may be used by worker routines
-		void rewind() { handler().reset_(); handler_i_ = 0; } // rewind to first handler
-		void restart() { ++itered_; rewind(); } // rewind and count iteration
-		void reset() { itered_ = 0; rewind(); } // rewind reset state indicators
+		/*** SETTERS ***/
+		void on_cleanup(routine_t on_c) { on_cleanup_ = on_c; }
+
+		/*** HELPERS ***/// these are public so that they may be used by worker routines
+		void cleanup(const token_t& t, dest_t& d) { if (on_cleanup_) { on_cleanup_(this, t, d); } } // call the set cleanup routine if present
+		void rewind(const token_t& cur_t, dest_t& cur_d) { cleanup(cur_t, cur_d); handler().reset_(cur_t, cur_d); handler_i_ = 0; } // cleanup and rewind to first handler 
+		void restart(const token_t& cur_t, dest_t& cur_d) { ++itered_; rewind(cur_t, cur_d); } // rewind and count iteration
+		void reset(const token_t& cur_t, dest_t& cur_d) { itered_ = 0; rewind(cur_t, cur_d); } // rewind reset state indicators
 
 	private:
 		/*** MEMBERS ***/
 		handler_arr_t handlers_; // sequential array of token handlers
+		routine_t on_cleanup_; // cleanup routine to call when rewinding to first handler
 
 		/*** STATE ***/
 		unsigned int handler_i_ = 0; // index of the current handler
@@ -201,7 +211,7 @@ class ParseWorker
 		/*** HELPERS ***/
 		bool indefinite_() const { return iters_ == INF_ITERS; } // check if iterations are limited
 		bool finished_() const { return !indefinite_() && itered_ >= iters_; } // check if iteration limit has been exceeded
-		bool done_() const { return handler_i_ == handlers_.size(); } // check if current iteration is done
+		bool done() const { return handler_i_ == handlers_.size(); } // check if current iteration is done
 		bool working_() const { return handler_i_ >= working_at_ && !finished_(); } // check if presently "working"
 };
 
@@ -226,22 +236,22 @@ inline bool ParseWorker<TokenType, DestType>::proc(const token_t& t, dest_t& d)
 		}
 
 		// if current handler is "done" then move on to next handler
-		if (handler().done_()) {
-			handler().reset_();
+		if (handler().done()) {
+			handler().reset_(t, d);
 			++handler_i_;
 
 			// restart if current iteration is complete (i.e. currently past the last handler)
-			if (done_()) {
-				restart();
+			if (done()) {
+				restart(t, d);
 			}
 		}
 
 		// if worker is set "blocking", return true to block ancestors from matching
 		return blocker_;
 	}
-	else if (handler().time_()) {
+	else if (handler().time()) {
 		// restart on handler timeout
-		restart();
+		restart(t, d);
 	}
 
 	return false;
@@ -269,7 +279,7 @@ inline bool ParseWorker<TokenType, DestType>::TokenHandler::proc_workers_(const 
 		blocked = working_->proc(t, d);
 		if (!working_->working_()) {
 			for (worker_t& w : workers_) {
-				w.rewind();	
+				w.rewind(t, d);	
 			}
 			working_ = nullptr;
 		}
@@ -291,10 +301,11 @@ inline bool ParseWorker<TokenType, DestType>::TokenHandler::proc_workers_(const 
 }
 
 template <class TokenType, class DestType>
-inline void ParseWorker<TokenType, DestType>::TokenHandler::reset_()
+inline void ParseWorker<TokenType, DestType>::TokenHandler::reset_(const token_t& cur_t, dest_t& cur_d)
 {
+	eject_workers();
 	for (worker_t& w : workers_) {
-		w.reset();
+		w.reset(cur_t, cur_d);
 	}
 	match_counter_ = 0;
 	mismatch_counter_ = 0;
