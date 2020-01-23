@@ -43,9 +43,7 @@ class TagWorker : public worker_t
 			static constexpr const routine_t on_tag_  = [](worker_t *worker, const token_t& token, dest_t& writer) {
 				if (token == symbol_t::PARAM) {
 					worker->handler_at(1).on_match(on_param_first_text_);
-					if (writer.writing()) {
-						writer.skip_write();
-					}
+					writer.skip_write();
 					return;
 				}
 
