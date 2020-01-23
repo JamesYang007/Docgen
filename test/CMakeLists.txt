@@ -62,8 +62,8 @@ create_test("core_unittests" core_unittests)
 add_executable(utils_unittests
                #${CMAKE_CURRENT_SOURCE_DIR}/core/utils/array_constant_unittest.cpp
                ${CMAKE_CURRENT_SOURCE_DIR}/core/utils/type_traits_unittest.cpp
-               ${CMAKE_CURRENT_SOURCE_DIR}/core/utils/valuelist_unittest.cpp
-               #${CMAKE_CURRENT_SOURCE_DIR}/core/utils/trie_unittest.cpp
+               ${CMAKE_CURRENT_SOURCE_DIR}/core/utils/list_unittest.cpp
+               ${CMAKE_CURRENT_SOURCE_DIR}/core/utils/trie_unittest.cpp
                )
 
 create_test("utils_unittests" utils_unittests)

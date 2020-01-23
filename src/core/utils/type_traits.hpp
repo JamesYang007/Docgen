@@ -54,6 +54,8 @@ inline constexpr auto make_pair_array(
 {
     return details::make_pair_array(list, std::make_index_sequence<N>());
 }
+
+// TODO: remove starting from here
     
 ////////////////////////////////////////////////////////////
 // is_array 

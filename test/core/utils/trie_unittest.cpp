@@ -1,4 +1,5 @@
 #include <core/utils/trie.hpp>
+#include <core/utils/type_traits.hpp>
 //#include <core/symbol.hpp>
 #include <gtest/gtest.h>
 
@@ -23,240 +24,153 @@ protected:
     using symbol_t = MockSymbol;
 };
 
-TEST_F(trie_fixture, get_first_chars)
+TEST_F(trie_fixture, has_empty_valuelist_true)
 {
-    using namespace std::literals;
-    static constexpr auto arr = make_array<std::string_view>({
-        "a"sv,
-        "abc"sv,
-        "bc"sv
-    });
-    using array_t = make_array_constant_t<arr>;
-    using first_chars_t = get_first_chars_t<array_t>;
-
-    static_assert(first_chars_t::value[0] == 'a');
-    static_assert(first_chars_t::value[1] == 'a');
-    static_assert(first_chars_t::value[2] == 'b');
+    using list1_t = valuelist<int, 0, 1>;
+    using list2_t = valuelist<char>;
+    using list_t = typelist<list1_t, list2_t>;
+    static_assert(has_empty_valuelist_v<list_t>);
 }
 
-TEST_F(trie_fixture, remove_first_chars)
+TEST_F(trie_fixture, trie_params_depth_1)
 {
-    using namespace std::literals;
-    static constexpr auto arr = make_array<std::string_view>({
-        "a"sv,
-        "abc"sv,
-        "bc"sv
-    });
-    using array_t = make_array_constant_t<arr>;
-    using removed_first_chars_t = remove_first_chars_t<array_t>;
+    using list_t = typelist<
+        typelist<valuelist<char, 'a'>, std::integral_constant<symbol_t, symbol_t::symbol_0>>,
+        typelist<valuelist<char, 'b'>, std::integral_constant<symbol_t, symbol_t::symbol_1>>
+    >;
+    using param_t = trie_params_t<list_t>;
 
-    static_assert(removed_first_chars_t::value[0] == "");
-    static_assert(removed_first_chars_t::value[1] == "bc");
-    static_assert(removed_first_chars_t::value[2] == "c");
+    using first_t = get_t<param_t, 0>;  // unique set of chars
+    using second_t = get_t<param_t, 1>; // children information
+
+    // check unique char set
+    static_assert(size_v<first_t> == 2);
+    static_assert(get_v<first_t, 0> == 'a');
+    static_assert(get_v<first_t, 1> == 'b');
+
+    static_assert(std::is_same_v<
+            // first child's first information (trie param)
+            get_t<get_t<second_t, 0>, 0>,
+            utils::leaf_tag
+            >);
+
+    static_assert(
+            // first child's second information (bool indicating accept state)
+            get_t<get_t<second_t, 0>, 1>::value 
+            ==
+            true
+            );
+
+    static_assert(
+            // first child's third information (symbol)
+            get_t<get_t<second_t, 0>, 2>::value 
+            ==
+            symbol_t::symbol_0
+            );
+
+    static_assert(std::is_same_v<
+            get_t<get_t<second_t, 1>, 0>,
+            utils::leaf_tag
+            >);
+
+    static_assert(
+            get_t<get_t<second_t, 1>, 1>::value
+            ==
+            true
+            );
+
+    static_assert(
+            get_t<get_t<second_t, 1>, 2>::value
+            ==
+            symbol_t::symbol_1
+            );
 }
 
-TEST_F(trie_fixture, trie_params_empty)
-{
-    using namespace details;
-    using namespace std::literals;
-    using pair_t = std::pair<std::string_view, MockSymbol>;
-    static constexpr std::array<pair_t, 0> pair_arr = {};
-    using arr_t = make_array_constant_t<pair_arr>;
-    static_assert(std::is_same_v<typename trie_params<arr_t>::type,
-                                 utils::leaf_tag>);
-}
-
-TEST_F(trie_fixture, just_testing)
+TEST_F(trie_fixture, trie_params_depth_2)
 {
     using namespace std::literals;
-    using type = A<"hello"sv>;
+    static constexpr std::string_view str1 = "a"sv;
+    static constexpr std::string_view str2 = "ab"sv;
+    static constexpr std::string_view str3 = "ba"sv;
+    using list_t = typelist<
+        typelist<sv_to_valuelist_t<str1>, std::integral_constant<symbol_t, symbol_t::symbol_0>>,
+        typelist<sv_to_valuelist_t<str2>, std::integral_constant<symbol_t, symbol_t::symbol_1>>,
+        typelist<sv_to_valuelist_t<str3>, std::integral_constant<symbol_t, symbol_t::symbol_1>>
+    >;
+    using param_t = trie_params_t<list_t>;
+
+    using first_t = get_t<param_t, 0>;  // unique set of chars
+    using second_t = get_t<param_t, 1>; // children information
+
+    // check unique char set
+    static_assert(size_v<first_t> == 2);
+    static_assert(get_v<first_t, 0> == 'a');
+    static_assert(get_v<first_t, 1> == 'b');
+
+    // first child's second information (bool indicating accept state)
+    static_assert(get_t<get_t<second_t, 0>, 1>::value);
+
+    // first child's third information (symbol)
+    static_assert(get_t<get_t<second_t, 0>, 2>::value == symbol_t::symbol_0);
+
+    static_assert(!get_t<get_t<second_t, 1>, 1>::value);
+
+    ////////////////////////////////////////////////////////////////
+    // check first child
+    ////////////////////////////////////////////////////////////////
+    
+    // check its first (and only) child
+    using child_1_param_t = get_t<get_t<second_t, 0>, 0>;
+    using first_child_1_param_t = get_t<child_1_param_t, 0>;
+    using second_child_1_param_t = get_t<child_1_param_t, 1>;
+
+    static_assert(size_v<first_child_1_param_t> == 1);
+    static_assert(get_v<first_child_1_param_t, 0> == 'b');
+
+    static_assert(std::is_same_v<
+            get_t<get_t<second_child_1_param_t, 0>, 0>,
+            utils::leaf_tag
+            >);
+
+    static_assert(get_t<get_t<second_child_1_param_t, 0>, 1>::value);
+
+    static_assert(get_t<get_t<second_child_1_param_t, 0>, 2>::value == symbol_t::symbol_1);
+
+    ////////////////////////////////////////////////////////////////
+    // check second child
+    ////////////////////////////////////////////////////////////////
+
+    using child_2_param_t = get_t<get_t<second_t, 1>, 0>;
+    using first_child_2_param_t = get_t<child_2_param_t, 0>;
+    using second_child_2_param_t = get_t<child_2_param_t, 1>;
+
+    static_assert(size_v<first_child_2_param_t> == 1);
+    static_assert(get_v<first_child_2_param_t, 0> == 'a');
+
+    static_assert(std::is_same_v<
+            get_t<get_t<second_child_2_param_t, 0>, 0>,
+            utils::leaf_tag
+            >);
+
+    static_assert(get_t<get_t<second_child_2_param_t, 0>, 1>::value);
+
+    static_assert(get_t<get_t<second_child_2_param_t, 0>, 2>::value == symbol_t::symbol_1);
 }
 
-//TEST_F(trie_fixture, trie_params_depth_1)
-//{
-//    using namespace details;
-//    using namespace std::literals;
-//    using pair_t = std::pair<std::string_view, symbol_t>;
-//    static constexpr auto pair_arr = make_array<pair_t>({
-//        {"a"sv, symbol_t::symbol_0},
-//        {"b"sv, symbol_t::symbol_1}
-//    });
-//    using arr_t = make_array_constant_t<pair_arr>;
-//    using param_t = typename trie_params<arr_t>::type;
-//
-//    using first_t = typename param_t::first_type;
-//    using second_t = typename param_t::second_type;
-//
-//    static_assert(first_t::value.size() == 2);
-//    static_assert(first_t::value[0] == 'a');
-//    static_assert(first_t::value[1] == 'b');
-//
-//    static_assert(std::is_same_v<
-//            std::tuple_element_t<0, std::tuple_element_t<0, second_t>>,
-//            utils::leaf_tag
-//            >);
-//
-//    static_assert(
-//            std::tuple_element_t<1, std::tuple_element_t<0, second_t>>::value 
-//            ==
-//            true
-//            );
-//
-//    static_assert(
-//            std::tuple_element_t<2, std::tuple_element_t<0, second_t>>::value 
-//            ==
-//            symbol_t::symbol_0
-//            );
-//
-//    static_assert(std::is_same_v<
-//            std::tuple_element_t<0, std::tuple_element_t<1, second_t>>,
-//            utils::leaf_tag
-//            >);
-//
-//    static_assert(
-//            std::tuple_element_t<1, std::tuple_element_t<1, second_t>>::value 
-//            ==
-//            true
-//            );
-//
-//    static_assert(
-//            std::tuple_element_t<2, std::tuple_element_t<1, second_t>>::value 
-//            ==
-//            symbol_t::symbol_1
-//            );
-//}
-//
-//TEST_F(trie_fixture, trie_params_depth_2)
-//{
-//    using namespace details;
-//    using namespace std::literals;
-//    using pair_t = std::pair<std::string_view, symbol_t>;
-//    static constexpr auto pair_arr = make_array<pair_t>({
-//        {"a"sv, symbol_t::symbol_0},
-//        {"ab"sv, symbol_t::symbol_1}
-//    });
-//
-//    using arr_t = make_array_constant_t<pair_arr>;
-//    using param_t = typename trie_params<arr_t>::type;
-//
-//    using first_t = typename param_t::first_type;
-//    using second_t = typename param_t::second_type;
-//
-//    static_assert(first_t::value.size() == 1);
-//    static_assert(first_t::value[0] == 'a');
-//
-//    using depth_1_t = std::tuple_element_t<0, std::tuple_element_t<0, second_t>>;
-//    using depth_1_first_t = typename depth_1_t::first_type;
-//    using depth_1_second_t = typename depth_1_t::second_type;
-//
-//    static_assert(depth_1_first_t::value.size() == 1);
-//    static_assert(depth_1_first_t::value[0] == 'b');
-//
-//    static_assert(std::is_same_v<
-//            std::tuple_element_t<0, std::tuple_element_t<0, depth_1_second_t>>,
-//            utils::leaf_tag
-//            >);
-//
-//    static_assert(
-//            std::tuple_element_t<1, std::tuple_element_t<0, depth_1_second_t>>::value 
-//            ==
-//            true
-//            );
-//
-//    static_assert(
-//            std::tuple_element_t<2, std::tuple_element_t<0, depth_1_second_t>>::value 
-//            ==
-//            symbol_t::symbol_1
-//            );
-//
-//    static_assert(
-//            std::tuple_element_t<1, std::tuple_element_t<0, second_t>>::value 
-//            ==
-//            true
-//            );
-//
-//    static_assert(
-//            std::tuple_element_t<2, std::tuple_element_t<0, second_t>>::value 
-//            ==
-//            symbol_t::symbol_0
-//            );
-//
-//}
-//
-//TEST_F(trie_fixture, trie_params_real)
-//{
-//    using namespace details;
-//    using namespace std::literals;
-//    using pair_t = std::pair<std::string_view, Symbol>;
-//    static constexpr auto pair_arr = make_array<pair_t>({
-//         {"\n", Symbol::NEWLINE},
-//         {" ", Symbol::WHITESPACE},
-//         {"\t", Symbol::WHITESPACE},
-//         {"\v", Symbol::WHITESPACE},
-//         {"\r", Symbol::WHITESPACE},
-//         {"\f", Symbol::WHITESPACE},
-//         {";", Symbol::SEMICOLON},
-//         {"#", Symbol::HASHTAG},
-//         {"*", Symbol::STAR},
-//         {"{", Symbol::OPEN_BRACE},
-//         {"}", Symbol::CLOSE_BRACE},
-//         {"///", Symbol::BEGIN_SLINE_COMMENT},
-//         {"/*!", Symbol::BEGIN_SBLOCK_COMMENT},
-//         {"//", Symbol::BEGIN_NLINE_COMMENT},
-//         {"/*", Symbol::BEGIN_NBLOCK_COMMENT},
-//         {"*/", Symbol::END_BLOCK_COMMENT},
-//         {"@sdesc", Symbol::SDESC},
-//         {"@tparam", Symbol::TPARAM},
-//         {"@param", Symbol::PARAM},
-//         {"@return", Symbol::RETURN}
-//    });
-//
-//    using arr_t = make_array_constant_t<pair_arr>;
-//    using param_t = typename trie_params<arr_t>::type;
-//
-//    //using first_t = typename param_t::first_type;
-//    //using second_t = typename param_t::second_type;
-//
-//    //static_assert(first_t::value.size() == 1);
-//    //static_assert(first_t::value[0] == 'a');
-//
-//    //using depth_1_t = std::tuple_element_t<0, std::tuple_element_t<0, second_t>>;
-//    //using depth_1_first_t = typename depth_1_t::first_type;
-//    //using depth_1_second_t = typename depth_1_t::second_type;
-//
-//    //static_assert(depth_1_first_t::value.size() == 1);
-//    //static_assert(depth_1_first_t::value[0] == 'b');
-//
-//    //static_assert(std::is_same_v<
-//    //        std::tuple_element_t<0, std::tuple_element_t<0, depth_1_second_t>>,
-//    //        utils::leaf_tag
-//    //        >);
-//
-//    //static_assert(
-//    //        std::tuple_element_t<1, std::tuple_element_t<0, depth_1_second_t>>::value 
-//    //        ==
-//    //        true
-//    //        );
-//
-//    //static_assert(
-//    //        std::tuple_element_t<2, std::tuple_element_t<0, depth_1_second_t>>::value 
-//    //        ==
-//    //        symbol_t::symbol_1
-//    //        );
-//
-//    //static_assert(
-//    //        std::tuple_element_t<1, std::tuple_element_t<0, second_t>>::value 
-//    //        ==
-//    //        true
-//    //        );
-//
-//    //static_assert(
-//    //        std::tuple_element_t<2, std::tuple_element_t<0, second_t>>::value 
-//    //        ==
-//    //        symbol_t::symbol_0
-//    //        );
-//
-//}
+TEST_F(trie_fixture, lextrie_ctor)
+{
+    using namespace std::literals;
+    static constexpr std::string_view str1 = "a"sv;
+    static constexpr std::string_view str2 = "ab"sv;
+    static constexpr std::string_view str3 = "ba"sv;
+    using list_t = typelist<
+        typelist<sv_to_valuelist_t<str1>, std::integral_constant<symbol_t, symbol_t::symbol_0>>,
+        typelist<sv_to_valuelist_t<str2>, std::integral_constant<symbol_t, symbol_t::symbol_1>>,
+        typelist<sv_to_valuelist_t<str3>, std::integral_constant<symbol_t, symbol_t::symbol_1>>
+    >;
+    using param_t = trie_params_t<list_t>;
+    LexTrie<param_t> trie;
+}
     
 } // namespace utils
 } // namespace core

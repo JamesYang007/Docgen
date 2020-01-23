@@ -1,9 +1,5 @@
 #!/bin/bash
 
-mode=$1 # debug/release mode
-shift   # shift command-line arguments
-        # the rest are cmake command-line arguments
-
 # relative directory where current shell script resides from where shell script was called
 PROJECTDIR="$(cd -P -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd -P)"
 echo "Project directory: $PROJECTDIR"
