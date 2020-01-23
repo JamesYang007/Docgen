@@ -51,6 +51,11 @@ class JSONWriter {
 		 * is necessary.
 		 */
 		void cleanup_written();
+		
+		/*
+		 * Sets the JSON currently being handled (written to).
+		 */
+		void set_key(const char *key);
 
 		/*
 		 * Store the current active_ JSON by moving it into destination JSON at the
@@ -98,9 +103,8 @@ class JSONWriter {
 		void stop_writing() { writing_ = false; } // set fed strings to be disregarded
 		void skip_write() { to_skip_ = true; } // set for the next fed string to be skipped/disregarded
 		void pushback_write() { to_pushback_ = true; } // set to begin writing value on back of current key's array; if current key is not array, no effect
-		void set_key(const char *key) { cleanup_written(); key_.assign(key); } // set the currently handled JSON key
 		void clear_key() { set_key(""); } // clear the currently handled key
-		void next_back_out() { pending_back_out_ = true; } // set to back out at end of current "write session"
+		void next_back_out() { pending_back_out_ = true; } // set to back out at next key change or store/depth action
 
 		/*** STATE GETTERS ***/
 		bool key_set() const { return !key_.empty(); } // check if a JSON key is set
@@ -118,6 +122,7 @@ class JSONWriter {
 		void store_to_pushback(const char *at_key) { store_to(at_key, true); } // pushback JSON to store rather than assigning
 		void go_into_this() { go_into(nullptr); } // stow the current active_ JSON such that it can be stored to; no key is specified for returning to
 		void go_into_pushback(const char *unstow_key) { go_into(unstow_key, true); } // stow for key to be appended to (as array) rather than assigned
+		void handle_pending_backout() { if (pending_back_out_) { pending_back_out_ = false; back_out(); } }
 
 	private:
 		/*** STATE ***/
@@ -247,16 +252,19 @@ inline void JSONWriter::cleanup_written()
 	just_written_ = false;
 	to_skip_ = false;
 	to_pushback_ = false;
-	if (pending_back_out_) {
-		pending_back_out_ = false;
-		back_out();
-	}
+}
 
+inline void JSONWriter::set_key(const char *key)
+{
+	cleanup_written();
+	handle_pending_backout();
+	key_.assign(key);
 }
 
 inline void JSONWriter::store_to(nlohmann::json& dest_container, const char *at_key, bool to_arr)
 {
 	cleanup_written();
+	handle_pending_backout();
 	if (anything_written()) {
 		nlohmann::json& dest = dest_container[at_key];
 		if (dest.is_null()) {
@@ -280,6 +288,7 @@ inline void JSONWriter::store_to(nlohmann::json& dest_container, const char *at_
 inline void JSONWriter::go_into(const char *unstow_key, bool pushback)
 {
 	cleanup_written();
+	handle_pending_backout();
 	stowed_.push_back(StowPack_(std::move(active_), unstow_key ? unstow_key : "", pushback));
 	reset_active();
 }
