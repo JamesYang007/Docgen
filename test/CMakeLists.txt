@@ -8,6 +8,7 @@ function(create_test TEST_NAME TEST_TARGET)
         PRIVATE
         ${GTEST_DIR}/include
         ${PROJECT_SOURCE_DIR}/src
+        ${PROJECT_SOURCE_DIR}/test
         ${ETERNAL_DIR}/include)
     target_link_libraries(${TEST_TARGET}
         PRIVATE gtest_main pthread nlohmann_json::nlohmann_json)
@@ -50,20 +51,13 @@ add_executable(core_unittests
                ${CMAKE_CURRENT_SOURCE_DIR}/core/lex/lexer_unittest.cpp
                # Source dependency
                $<TARGET_OBJECTS:LEXER_LIB_OBJECTS>
+
+               #${CMAKE_CURRENT_SOURCE_DIR}/core/utils/type_traits_unittest.cpp
+               ${CMAKE_CURRENT_SOURCE_DIR}/core/utils/list_unittest.cpp
+               ${CMAKE_CURRENT_SOURCE_DIR}/core/utils/map_unittest.cpp
+               ${CMAKE_CURRENT_SOURCE_DIR}/core/utils/trie_params_unittest.cpp
+               ${CMAKE_CURRENT_SOURCE_DIR}/core/lex/lextrie_unittest.cpp
                )
 
 create_test("core_unittests" core_unittests)
 
-
-######################################################
-# Utils Unit Tests
-######################################################
-
-add_executable(utils_unittests
-               #${CMAKE_CURRENT_SOURCE_DIR}/core/utils/array_constant_unittest.cpp
-               ${CMAKE_CURRENT_SOURCE_DIR}/core/utils/type_traits_unittest.cpp
-               ${CMAKE_CURRENT_SOURCE_DIR}/core/utils/list_unittest.cpp
-               ${CMAKE_CURRENT_SOURCE_DIR}/core/utils/trie_unittest.cpp
-               )
-
-create_test("utils_unittests" utils_unittests)

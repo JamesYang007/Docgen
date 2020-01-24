@@ -1,4 +1,4 @@
-#include <core/lex/lexer.hpp>
+#include <core/lex/legacy_2/lexer.hpp>
 
 namespace docgen {
 namespace core {
@@ -8,18 +8,41 @@ namespace lex {
 // Lexer Implementation
 ///////////////////////////////////
 
+Lexer::Lexer()
+    : trie_({
+            {"\n", Symbol::NEWLINE},
+            {" ", Symbol::WHITESPACE},
+            {"\t", Symbol::WHITESPACE},
+            {"\v", Symbol::WHITESPACE},
+            {"\r", Symbol::WHITESPACE},
+            {"\f", Symbol::WHITESPACE},
+            {";", Symbol::SEMICOLON},
+            {"#", Symbol::HASHTAG},
+            {"*", Symbol::STAR},
+            {"{", Symbol::OPEN_BRACE},
+            {"}", Symbol::CLOSE_BRACE},
+            {"///", Symbol::BEGIN_SLINE_COMMENT},
+            {"/*!", Symbol::BEGIN_SBLOCK_COMMENT},
+            {"//", Symbol::BEGIN_NLINE_COMMENT},
+            {"/*", Symbol::BEGIN_NBLOCK_COMMENT},
+            {"*/", Symbol::END_BLOCK_COMMENT},
+            {"@sdesc", Symbol::SDESC},
+            {"@tparam", Symbol::TPARAM},
+            {"@param", Symbol::PARAM},
+            {"@return", Symbol::RETURN}
+            })
+{}
+
 void Lexer::process(char c)
 {
     this->update_state();
 
-    bool transitioned = trie_.transition(c, 
-            [this, c]() {
-                this->buf_.push_back(c);
-            }
-        );
+    auto it = trie_.get_children().find(c);
 
     // if transition exists
-    if (transitioned) {
+    if (it != trie_.get_children().end()) {
+        buf_.push_back(c);
+        trie_.transition(c);
         return;
     }
 
@@ -48,7 +71,9 @@ void Lexer::backtrack(char c)
     this->tokenize_text(); 
 
     // tokenize symbol
-    trie_.back_transition(buf_.size());
+    for (uint32_t i = 0; i < buf_.size(); ++i) {
+        trie_.back_transition();
+    }
     assert(trie_.is_accept());
     auto opt_symbol = trie_.get_symbol();
     assert(static_cast<bool>(opt_symbol));

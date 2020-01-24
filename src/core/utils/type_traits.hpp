@@ -28,33 +28,6 @@ inline constexpr auto make_array(const T (&arr)[N])
    return details::make_array(arr, std::make_index_sequence<N>());
 }
 
-////////////////////////////////////////////////////////////
-// make_pair_array 
-////////////////////////////////////////////////////////////
-
-namespace details {
-
-template <class FirstType, class SecondType, size_t N, size_t... I>
-inline constexpr auto make_pair_array(
-        const std::pair<FirstType, SecondType> (&list)[N],
-        std::index_sequence<I...>
-        )
-{
-    using pair_t = std::pair<FirstType, SecondType>;
-    return std::array<pair_t, N>{{list[I]...}};
-}
-
-} // namespace details
-
-// Variadic number of pairs to array of pairs
-template <class FirstType, class SecondType, size_t N>
-inline constexpr auto make_pair_array(
-        const std::pair<FirstType, SecondType> (&list)[N]
-        )
-{
-    return details::make_pair_array(list, std::make_index_sequence<N>());
-}
-
 // TODO: remove starting from here
     
 ////////////////////////////////////////////////////////////

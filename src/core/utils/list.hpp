@@ -262,6 +262,75 @@ template <class List>
 using left_shift_t = typename details::left_shift<List>::type;
 
 //////////////////////////////////////////////////
+// sort_idx
+//////////////////////////////////////////////////
+
+namespace details {
+
+template <class List, size_t Idx = 0, bool = !is_empty_v<List>>
+struct sort_idx
+{
+private:
+    static_assert(is_valuelist_v<List>);
+    
+    // valuelist<size_t,...> of indices of next List in sorted order
+    using next_sort_idx_t = typename sort_idx<typename List::next_type, Idx + 1>::type;
+
+    template <size_t... I>
+    static constexpr auto find_current_place(std::index_sequence<I...>)
+    {
+        // number of elements in next list less than current value
+        // this is precisely the index where the current value should be
+        return(((get_v<typename List::next_type, I> < List::value) & 1) + ... + 0);
+    }
+
+    static constexpr auto find_current_place()
+    {
+        return find_current_place(std::make_index_sequence<size_v<next_sort_idx_t>>());
+    }
+
+    static constexpr size_t new_idx = find_current_place();
+
+    template <size_t... I, size_t... J>
+    static constexpr auto reorder(
+            std::index_sequence<I...>,
+            std::index_sequence<J...>)
+    {
+        using lower_list_t = valuelist<size_t, get_v<next_sort_idx_t, I>...>;
+        using greater_list_t = valuelist<size_t, get_v<next_sort_idx_t, J + size_v<lower_list_t>>...>;
+        using concat_lower_t = concat_t<lower_list_t, valuelist<size_t, Idx>>;
+        using concat_upper_t = concat_t<concat_lower_t, greater_list_t>;
+        return concat_upper_t();
+    }
+
+    static constexpr auto reorder()
+    {
+        return reorder(
+                std::make_index_sequence<new_idx>(),
+                std::make_index_sequence<size_v<next_sort_idx_t> - new_idx>()
+        );
+    }
+
+public:
+    using type = std::decay_t<decltype(reorder())>;
+};
+
+template <class List, size_t Idx>
+struct sort_idx<List, Idx, false>
+{
+private:
+    static_assert(is_valuelist_v<List>);
+
+public:
+    using type = valuelist<size_t>;
+};
+
+} // namespace details
+
+template <class List>
+using sort_idx_t = typename details::sort_idx<List>::type;
+
+//////////////////////////////////////////////////
 // Intended for ONLY typelist
 //////////////////////////////////////////////////
 

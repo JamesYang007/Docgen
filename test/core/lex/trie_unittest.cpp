@@ -1,4 +1,4 @@
-#include <core/lex/trie.hpp>
+#include <core/lex/legacy_2/trie.hpp>
 #include <gtest/gtest.h>
 
 namespace docgen {

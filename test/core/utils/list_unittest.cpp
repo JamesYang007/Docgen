@@ -309,6 +309,17 @@ TEST_F(list_fixture, transform)
     static_assert(std::is_same_v<get_t<transformed_t, 2>, float>);
 }
 
+TEST_F(list_fixture, sort_idx)
+{
+    using list_t = valuelist<int, 2, 4, 1, 9, 5>;
+    using sorted_idx_t = sort_idx_t<list_t>;
+    static_assert(get_v<sorted_idx_t, 0> == 2);
+    static_assert(get_v<sorted_idx_t, 1> == 0);
+    static_assert(get_v<sorted_idx_t, 2> == 1);
+    static_assert(get_v<sorted_idx_t, 3> == 4);
+    static_assert(get_v<sorted_idx_t, 4> == 3);
+}
+
 } // namespace utils
 } // namespace core
 } // namespace docgen

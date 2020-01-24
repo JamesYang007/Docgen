@@ -1,30 +1,15 @@
-#include <core/utils/trie.hpp>
+#include <core/utils/trie_params.hpp>
 #include <core/utils/type_traits.hpp>
-//#include <core/symbol.hpp>
-#include <gtest/gtest.h>
+#include <core/utils/trie_base_fixture.hpp>
 
 namespace docgen {
 namespace core {
 namespace utils {
 
-template <const std::string_view& x>
-struct A
-{
-    static constexpr auto yo = x;
-};
+struct trie_params_fixture : trie_base_fixture
+{};
 
-enum class MockSymbol {
-    symbol_0,
-    symbol_1
-};
-
-struct trie_fixture : ::testing::Test
-{
-protected:
-    using symbol_t = MockSymbol;
-};
-
-TEST_F(trie_fixture, has_empty_valuelist_true)
+TEST_F(trie_params_fixture, has_empty_valuelist_true)
 {
     using list1_t = valuelist<int, 0, 1>;
     using list2_t = valuelist<char>;
@@ -32,7 +17,7 @@ TEST_F(trie_fixture, has_empty_valuelist_true)
     static_assert(has_empty_valuelist_v<list_t>);
 }
 
-TEST_F(trie_fixture, trie_params_depth_1)
+TEST_F(trie_params_fixture, trie_params_depth_1)
 {
     using list_t = typelist<
         typelist<valuelist<char, 'a'>, std::integral_constant<symbol_t, symbol_t::symbol_0>>,
@@ -86,7 +71,7 @@ TEST_F(trie_fixture, trie_params_depth_1)
             );
 }
 
-TEST_F(trie_fixture, trie_params_depth_2)
+TEST_F(trie_params_fixture, trie_params_depth_2)
 {
     using namespace std::literals;
     static constexpr std::string_view str1 = "a"sv;
@@ -155,21 +140,6 @@ TEST_F(trie_fixture, trie_params_depth_2)
     static_assert(get_t<get_t<second_child_2_param_t, 0>, 1>::value);
 
     static_assert(get_t<get_t<second_child_2_param_t, 0>, 2>::value == symbol_t::symbol_1);
-}
-
-TEST_F(trie_fixture, lextrie_ctor)
-{
-    using namespace std::literals;
-    static constexpr std::string_view str1 = "a"sv;
-    static constexpr std::string_view str2 = "ab"sv;
-    static constexpr std::string_view str3 = "ba"sv;
-    using list_t = typelist<
-        typelist<sv_to_valuelist_t<str1>, std::integral_constant<symbol_t, symbol_t::symbol_0>>,
-        typelist<sv_to_valuelist_t<str2>, std::integral_constant<symbol_t, symbol_t::symbol_1>>,
-        typelist<sv_to_valuelist_t<str3>, std::integral_constant<symbol_t, symbol_t::symbol_1>>
-    >;
-    using param_t = trie_params_t<list_t>;
-    LexTrie<param_t> trie;
 }
     
 } // namespace utils
