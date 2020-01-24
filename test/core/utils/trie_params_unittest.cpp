@@ -73,14 +73,10 @@ TEST_F(trie_params_fixture, trie_params_depth_1)
 
 TEST_F(trie_params_fixture, trie_params_depth_2)
 {
-    using namespace std::literals;
-    static constexpr std::string_view str1 = "a"sv;
-    static constexpr std::string_view str2 = "ab"sv;
-    static constexpr std::string_view str3 = "ba"sv;
     using list_t = typelist<
-        typelist<sv_to_valuelist_t<str1>, std::integral_constant<symbol_t, symbol_t::symbol_0>>,
-        typelist<sv_to_valuelist_t<str2>, std::integral_constant<symbol_t, symbol_t::symbol_1>>,
-        typelist<sv_to_valuelist_t<str3>, std::integral_constant<symbol_t, symbol_t::symbol_1>>
+        typelist<valuelist<char, 'a'>, std::integral_constant<symbol_t, symbol_t::symbol_0>>,
+        typelist<valuelist<char, 'a', 'b'>, std::integral_constant<symbol_t, symbol_t::symbol_1>>,
+        typelist<valuelist<char, 'b', 'a'>, std::integral_constant<symbol_t, symbol_t::symbol_1>>
     >;
     using param_t = trie_params_t<list_t>;
 

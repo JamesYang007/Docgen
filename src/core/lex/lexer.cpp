@@ -1,4 +1,5 @@
 #include <core/lex/lexer.hpp>
+#include <cassert>
 
 namespace docgen {
 namespace core {

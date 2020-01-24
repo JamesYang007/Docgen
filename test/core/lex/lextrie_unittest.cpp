@@ -10,14 +10,10 @@ struct lextrie_fixture : trie_base_fixture
 
 TEST_F(lextrie_fixture, is_accept)
 {
-    using namespace std::literals;
-    static constexpr std::string_view str1 = "a"sv;
-    static constexpr std::string_view str2 = "ab"sv;
-    static constexpr std::string_view str3 = "ba"sv;
     using list_t = typelist<
-        typelist<sv_to_valuelist_t<str1>, std::integral_constant<symbol_t, symbol_t::symbol_0>>,
-        typelist<sv_to_valuelist_t<str2>, std::integral_constant<symbol_t, symbol_t::symbol_1>>,
-        typelist<sv_to_valuelist_t<str3>, std::integral_constant<symbol_t, symbol_t::symbol_1>>
+        typelist<valuelist<char, 'a'>, std::integral_constant<symbol_t, symbol_t::symbol_0>>,
+        typelist<valuelist<char, 'a', 'b'>, std::integral_constant<symbol_t, symbol_t::symbol_1>>,
+        typelist<valuelist<char, 'b', 'a'>, std::integral_constant<symbol_t, symbol_t::symbol_1>>
     >;
     using param_t = trie_params_t<list_t>;
     LexTrie<param_t> trie;
@@ -27,14 +23,10 @@ TEST_F(lextrie_fixture, is_accept)
 
 TEST_F(lextrie_fixture, transition_depth_1)
 {
-    using namespace std::literals;
-    static constexpr std::string_view str1 = "a"sv;
-    static constexpr std::string_view str2 = "ab"sv;
-    static constexpr std::string_view str3 = "ba"sv;
     using list_t = typelist<
-        typelist<sv_to_valuelist_t<str1>, std::integral_constant<symbol_t, symbol_t::symbol_0>>,
-        typelist<sv_to_valuelist_t<str2>, std::integral_constant<symbol_t, symbol_t::symbol_1>>,
-        typelist<sv_to_valuelist_t<str3>, std::integral_constant<symbol_t, symbol_t::symbol_1>>
+        typelist<valuelist<char, 'a'>, std::integral_constant<symbol_t, symbol_t::symbol_0>>,
+        typelist<valuelist<char, 'a', 'b'>, std::integral_constant<symbol_t, symbol_t::symbol_1>>,
+        typelist<valuelist<char, 'b', 'a'>, std::integral_constant<symbol_t, symbol_t::symbol_1>>
     >;
     using param_t = trie_params_t<list_t>;
     LexTrie<param_t> trie;
@@ -45,14 +37,10 @@ TEST_F(lextrie_fixture, transition_depth_1)
 
 TEST_F(lextrie_fixture, transition_depth_2)
 {
-    using namespace std::literals;
-    static constexpr std::string_view str1 = "a"sv;
-    static constexpr std::string_view str2 = "ab"sv;
-    static constexpr std::string_view str3 = "ba"sv;
     using list_t = typelist<
-        typelist<sv_to_valuelist_t<str1>, std::integral_constant<symbol_t, symbol_t::symbol_0>>,
-        typelist<sv_to_valuelist_t<str2>, std::integral_constant<symbol_t, symbol_t::symbol_1>>,
-        typelist<sv_to_valuelist_t<str3>, std::integral_constant<symbol_t, symbol_t::symbol_1>>
+        typelist<valuelist<char, 'a'>, std::integral_constant<symbol_t, symbol_t::symbol_0>>,
+        typelist<valuelist<char, 'a', 'b'>, std::integral_constant<symbol_t, symbol_t::symbol_1>>,
+        typelist<valuelist<char, 'b', 'a'>, std::integral_constant<symbol_t, symbol_t::symbol_1>>
     >;
     using param_t = trie_params_t<list_t>;
     LexTrie<param_t> trie;
@@ -64,14 +52,10 @@ TEST_F(lextrie_fixture, transition_depth_2)
 
 TEST_F(lextrie_fixture, back_transition_once)
 {
-    using namespace std::literals;
-    static constexpr std::string_view str1 = "a"sv;
-    static constexpr std::string_view str2 = "ab"sv;
-    static constexpr std::string_view str3 = "ba"sv;
     using list_t = typelist<
-        typelist<sv_to_valuelist_t<str1>, std::integral_constant<symbol_t, symbol_t::symbol_0>>,
-        typelist<sv_to_valuelist_t<str2>, std::integral_constant<symbol_t, symbol_t::symbol_1>>,
-        typelist<sv_to_valuelist_t<str3>, std::integral_constant<symbol_t, symbol_t::symbol_1>>
+        typelist<valuelist<char, 'a'>, std::integral_constant<symbol_t, symbol_t::symbol_0>>,
+        typelist<valuelist<char, 'a', 'b'>, std::integral_constant<symbol_t, symbol_t::symbol_1>>,
+        typelist<valuelist<char, 'b', 'a'>, std::integral_constant<symbol_t, symbol_t::symbol_1>>
     >;
     using param_t = trie_params_t<list_t>;
     LexTrie<param_t> trie;
@@ -84,14 +68,10 @@ TEST_F(lextrie_fixture, back_transition_once)
 
 TEST_F(lextrie_fixture, back_transition_twice)
 {
-    using namespace std::literals;
-    static constexpr std::string_view str1 = "a"sv;
-    static constexpr std::string_view str2 = "ab"sv;
-    static constexpr std::string_view str3 = "ba"sv;
     using list_t = typelist<
-        typelist<sv_to_valuelist_t<str1>, std::integral_constant<symbol_t, symbol_t::symbol_0>>,
-        typelist<sv_to_valuelist_t<str2>, std::integral_constant<symbol_t, symbol_t::symbol_1>>,
-        typelist<sv_to_valuelist_t<str3>, std::integral_constant<symbol_t, symbol_t::symbol_1>>
+        typelist<valuelist<char, 'a'>, std::integral_constant<symbol_t, symbol_t::symbol_0>>,
+        typelist<valuelist<char, 'a', 'b'>, std::integral_constant<symbol_t, symbol_t::symbol_1>>,
+        typelist<valuelist<char, 'b', 'a'>, std::integral_constant<symbol_t, symbol_t::symbol_1>>
     >;
     using param_t = trie_params_t<list_t>;
     LexTrie<param_t> trie;
@@ -107,17 +87,11 @@ TEST_F(lextrie_fixture, back_transition_twice)
 
 TEST_F(lextrie_fixture, is_reset_true)
 {
-    using namespace std::literals;
-    static constexpr std::string_view str1 = "ada"sv;
-    static constexpr std::string_view str2 = "abd"sv;
-    static constexpr std::string_view str3 = "bacc"sv;
-    static constexpr std::string_view str4 = "adbc"sv;
-
     using list_t = typelist<
-        typelist<sv_to_valuelist_t<str1>, std::integral_constant<symbol_t, symbol_t::symbol_0>>,
-        typelist<sv_to_valuelist_t<str2>, std::integral_constant<symbol_t, symbol_t::symbol_1>>,
-        typelist<sv_to_valuelist_t<str3>, std::integral_constant<symbol_t, symbol_t::symbol_1>>,
-        typelist<sv_to_valuelist_t<str4>, std::integral_constant<symbol_t, symbol_t::symbol_0>>
+        typelist<valuelist<char, 'a', 'd', 'a'>, std::integral_constant<symbol_t, symbol_t::symbol_0>>,
+        typelist<valuelist<char, 'a', 'b', 'd'>, std::integral_constant<symbol_t, symbol_t::symbol_1>>,
+        typelist<valuelist<char, 'b', 'a', 'c', 'c'>, std::integral_constant<symbol_t, symbol_t::symbol_1>>,
+        typelist<valuelist<char, 'a', 'd', 'b', 'c'>, std::integral_constant<symbol_t, symbol_t::symbol_0>>
     >;
 
     using param_t = trie_params_t<list_t>;
@@ -136,17 +110,11 @@ TEST_F(lextrie_fixture, is_reset_true)
 
 TEST_F(lextrie_fixture, reset)
 {
-    using namespace std::literals;
-    static constexpr std::string_view str1 = "ada"sv;
-    static constexpr std::string_view str2 = "abd"sv;
-    static constexpr std::string_view str3 = "bacc"sv;
-    static constexpr std::string_view str4 = "adbc"sv;
-
     using list_t = typelist<
-        typelist<sv_to_valuelist_t<str1>, std::integral_constant<symbol_t, symbol_t::symbol_0>>,
-        typelist<sv_to_valuelist_t<str2>, std::integral_constant<symbol_t, symbol_t::symbol_1>>,
-        typelist<sv_to_valuelist_t<str3>, std::integral_constant<symbol_t, symbol_t::symbol_1>>,
-        typelist<sv_to_valuelist_t<str4>, std::integral_constant<symbol_t, symbol_t::symbol_0>>
+        typelist<valuelist<char, 'a', 'd', 'a'>, std::integral_constant<symbol_t, symbol_t::symbol_0>>,
+        typelist<valuelist<char, 'a', 'b', 'd'>, std::integral_constant<symbol_t, symbol_t::symbol_1>>,
+        typelist<valuelist<char, 'b', 'a', 'c', 'c'>, std::integral_constant<symbol_t, symbol_t::symbol_1>>,
+        typelist<valuelist<char, 'a', 'd', 'b', 'c'>, std::integral_constant<symbol_t, symbol_t::symbol_0>>
     >;
 
     using param_t = trie_params_t<list_t>;
@@ -162,17 +130,11 @@ TEST_F(lextrie_fixture, reset)
 
 TEST_F(lextrie_fixture, get_symbol)
 {
-    using namespace std::literals;
-    static constexpr std::string_view str1 = "ada"sv;
-    static constexpr std::string_view str2 = "abd"sv;
-    static constexpr std::string_view str3 = "bacc"sv;
-    static constexpr std::string_view str4 = "adbc"sv;
-
     using list_t = typelist<
-        typelist<sv_to_valuelist_t<str1>, std::integral_constant<symbol_t, symbol_t::symbol_0>>,
-        typelist<sv_to_valuelist_t<str2>, std::integral_constant<symbol_t, symbol_t::symbol_1>>,
-        typelist<sv_to_valuelist_t<str3>, std::integral_constant<symbol_t, symbol_t::symbol_1>>,
-        typelist<sv_to_valuelist_t<str4>, std::integral_constant<symbol_t, symbol_t::symbol_0>>
+        typelist<valuelist<char, 'a', 'd', 'a'>, std::integral_constant<symbol_t, symbol_t::symbol_0>>,
+        typelist<valuelist<char, 'a', 'b', 'd'>, std::integral_constant<symbol_t, symbol_t::symbol_1>>,
+        typelist<valuelist<char, 'b', 'a', 'c', 'c'>, std::integral_constant<symbol_t, symbol_t::symbol_1>>,
+        typelist<valuelist<char, 'a', 'd', 'b', 'c'>, std::integral_constant<symbol_t, symbol_t::symbol_0>>
     >;
 
     using param_t = trie_params_t<list_t>;

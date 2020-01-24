@@ -1,8 +1,8 @@
+# Legacy Benchmark
 add_executable(lexer_legacy_benchmark
     ${CMAKE_CURRENT_SOURCE_DIR}/core/lex/lexer_legacy_benchmark.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/core/lex/lexer_legacy_2_benchmark.cpp
     # Source dependency
-    $<TARGET_OBJECTS:LEXER_LEGACY_2_LIB_OBJECTS>
+    $<TARGET_OBJECTS:LEXER_LEGACY_LIB_OBJECTS>
     )
 target_compile_features(lexer_legacy_benchmark PRIVATE cxx_std_17)
 target_include_directories(lexer_legacy_benchmark PRIVATE
@@ -17,6 +17,26 @@ target_link_libraries(lexer_legacy_benchmark PRIVATE
     nlohmann_json::nlohmann_json
     )
 
+# Legacy 2 Benchmark
+add_executable(lexer_legacy_2_benchmark
+    ${CMAKE_CURRENT_SOURCE_DIR}/core/lex/lexer_legacy_2_benchmark.cpp
+    # Source dependency
+    $<TARGET_OBJECTS:LEXER_LEGACY_2_LIB_OBJECTS>
+    )
+target_compile_features(lexer_legacy_2_benchmark PRIVATE cxx_std_17)
+target_include_directories(lexer_legacy_2_benchmark PRIVATE
+    ${GBENCH_DIR}/include
+    ${PROJECT_SOURCE_DIR}/src
+    ${ETERNAL_DIR}/include
+    )
+target_link_libraries(lexer_legacy_2_benchmark PRIVATE
+    benchmark::benchmark
+    benchmark::benchmark_main
+    pthread
+    nlohmann_json::nlohmann_json
+    )
+
+# Benchmark
 add_executable(lexer_benchmark
     ${CMAKE_CURRENT_SOURCE_DIR}/core/lex/lexer_benchmark.cpp
     $<TARGET_OBJECTS:LEXER_LIB_OBJECTS>
