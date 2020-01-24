@@ -4,10 +4,39 @@
 namespace docgen {
 namespace core {
 namespace lex {
+namespace details {
+
+struct LexTrieSubParamsGenerator
+{
+private:
+    static constexpr auto string_symbol_arr = 
+        make_pair_array<std::string_view, Symbol>({
+            {"\n", Symbol::NEWLINE},
+            {";", Symbol::SEMICOLON},
+            {"*", Symbol::STAR},
+            {"{", Symbol::OPEN_BRACE},
+            {"}", Symbol::CLOSE_BRACE},
+            {"///", Symbol::BEGIN_SLINE_COMMENT},
+            {"/*!", Symbol::BEGIN_SBLOCK_COMMENT},
+            {"*/", Symbol::END_BLOCK_COMMENT},
+            {"@tparam", Symbol::TPARAM},
+            {"@param", Symbol::PARAM},
+        });
+
+public:
+    using type = utils::trie_params_t<
+        std::decay_t<decltype(make_trie_params_input<string_symbol_arr>())>
+    >;
+};
+
+} // namespace details
 
 struct lexer_fixture : lexer_base_fixture
 {
-    Lexer lexer;
+    using lex_trie_t = utils::LexTrie<
+        typename details::LexTrieSubParamsGenerator::type
+    >;
+    LexerGeneric<lex_trie_t> lexer;
 };
 
 BENCHMARK_F(lexer_fixture, data_1_test)(benchmark::State& st)

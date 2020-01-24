@@ -50,7 +50,7 @@ add_executable(core_unittests
                ${CMAKE_CURRENT_SOURCE_DIR}/core/lex/trie_unittest.cpp
                ${CMAKE_CURRENT_SOURCE_DIR}/core/lex/lexer_unittest.cpp
                # Source dependency
-               $<TARGET_OBJECTS:LEXER_LIB_OBJECTS>
+               #$<TARGET_OBJECTS:LEXER_LIB_OBJECTS>
 
                #${CMAKE_CURRENT_SOURCE_DIR}/core/utils/type_traits_unittest.cpp
                ${CMAKE_CURRENT_SOURCE_DIR}/core/utils/list_unittest.cpp
