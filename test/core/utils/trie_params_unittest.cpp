@@ -1,5 +1,4 @@
 #include <core/utils/trie_params.hpp>
-#include <core/utils/type_traits.hpp>
 #include <core/utils/trie_base_fixture.hpp>
 
 namespace docgen {

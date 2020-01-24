@@ -26,33 +26,11 @@ add_executable(exceptions_unittests
 create_test("exceptions_unittests" exceptions_unittests)
 
 ######################################################
-# File IO Unit Tests
-######################################################
-
-#add_executable(io_unittests
-#               ${CMAKE_CURRENT_SOURCE_DIR}/io/file_reader_unittest.cpp
-#               )
-#
-#create_test("io_unittests" io_unittests)
-#
-## copy data directory into where io_unittests executable ends up
-#add_custom_command(
-#        TARGET io_unittests POST_BUILD
-#        COMMAND ${CMAKE_COMMAND} -E copy_directory
-#                ${CMAKE_CURRENT_SOURCE_DIR}/io/io_data/
-#                $<TARGET_FILE_DIR:io_unittests>/io_data)
-
-######################################################
 # Core Unit Tests
 ######################################################
 
 add_executable(core_unittests
-               ${CMAKE_CURRENT_SOURCE_DIR}/core/lex/trie_unittest.cpp
                ${CMAKE_CURRENT_SOURCE_DIR}/core/lex/lexer_unittest.cpp
-               # Source dependency
-               #$<TARGET_OBJECTS:LEXER_LIB_OBJECTS>
-
-               #${CMAKE_CURRENT_SOURCE_DIR}/core/utils/type_traits_unittest.cpp
                ${CMAKE_CURRENT_SOURCE_DIR}/core/utils/list_unittest.cpp
                ${CMAKE_CURRENT_SOURCE_DIR}/core/utils/map_unittest.cpp
                ${CMAKE_CURRENT_SOURCE_DIR}/core/utils/trie_params_unittest.cpp
