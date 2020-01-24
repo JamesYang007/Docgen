@@ -33,7 +33,7 @@ public:
 
 struct lexer_fixture : lexer_base_fixture
 {
-    using lex_trie_t = utils::LexTrie<
+    using lex_trie_t = LexTrie<
         typename details::LexTrieSubParamsGenerator::type
     >;
     LexerGeneric<lex_trie_t> lexer;

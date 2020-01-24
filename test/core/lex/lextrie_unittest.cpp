@@ -3,13 +3,14 @@
 
 namespace docgen {
 namespace core {
-namespace utils {
+namespace lex {
 
-struct lextrie_fixture : trie_base_fixture
+struct lextrie_fixture : utils::trie_base_fixture
 {};
 
 TEST_F(lextrie_fixture, is_accept)
 {
+    using namespace utils;
     using list_t = typelist<
         typelist<valuelist<char, 'a'>, std::integral_constant<symbol_t, symbol_t::symbol_0>>,
         typelist<valuelist<char, 'a', 'b'>, std::integral_constant<symbol_t, symbol_t::symbol_1>>,
@@ -23,6 +24,7 @@ TEST_F(lextrie_fixture, is_accept)
 
 TEST_F(lextrie_fixture, transition_depth_1)
 {
+    using namespace utils;
     using list_t = typelist<
         typelist<valuelist<char, 'a'>, std::integral_constant<symbol_t, symbol_t::symbol_0>>,
         typelist<valuelist<char, 'a', 'b'>, std::integral_constant<symbol_t, symbol_t::symbol_1>>,
@@ -37,6 +39,7 @@ TEST_F(lextrie_fixture, transition_depth_1)
 
 TEST_F(lextrie_fixture, transition_depth_2)
 {
+    using namespace utils;
     using list_t = typelist<
         typelist<valuelist<char, 'a'>, std::integral_constant<symbol_t, symbol_t::symbol_0>>,
         typelist<valuelist<char, 'a', 'b'>, std::integral_constant<symbol_t, symbol_t::symbol_1>>,
@@ -52,6 +55,7 @@ TEST_F(lextrie_fixture, transition_depth_2)
 
 TEST_F(lextrie_fixture, back_transition_once)
 {
+    using namespace utils;
     using list_t = typelist<
         typelist<valuelist<char, 'a'>, std::integral_constant<symbol_t, symbol_t::symbol_0>>,
         typelist<valuelist<char, 'a', 'b'>, std::integral_constant<symbol_t, symbol_t::symbol_1>>,
@@ -68,6 +72,7 @@ TEST_F(lextrie_fixture, back_transition_once)
 
 TEST_F(lextrie_fixture, back_transition_twice)
 {
+    using namespace utils;
     using list_t = typelist<
         typelist<valuelist<char, 'a'>, std::integral_constant<symbol_t, symbol_t::symbol_0>>,
         typelist<valuelist<char, 'a', 'b'>, std::integral_constant<symbol_t, symbol_t::symbol_1>>,
@@ -87,6 +92,7 @@ TEST_F(lextrie_fixture, back_transition_twice)
 
 TEST_F(lextrie_fixture, is_reset_true)
 {
+    using namespace utils;
     using list_t = typelist<
         typelist<valuelist<char, 'a', 'd', 'a'>, std::integral_constant<symbol_t, symbol_t::symbol_0>>,
         typelist<valuelist<char, 'a', 'b', 'd'>, std::integral_constant<symbol_t, symbol_t::symbol_1>>,
@@ -110,6 +116,7 @@ TEST_F(lextrie_fixture, is_reset_true)
 
 TEST_F(lextrie_fixture, reset)
 {
+    using namespace utils;
     using list_t = typelist<
         typelist<valuelist<char, 'a', 'd', 'a'>, std::integral_constant<symbol_t, symbol_t::symbol_0>>,
         typelist<valuelist<char, 'a', 'b', 'd'>, std::integral_constant<symbol_t, symbol_t::symbol_1>>,
@@ -130,6 +137,7 @@ TEST_F(lextrie_fixture, reset)
 
 TEST_F(lextrie_fixture, get_symbol)
 {
+    using namespace utils;
     using list_t = typelist<
         typelist<valuelist<char, 'a', 'd', 'a'>, std::integral_constant<symbol_t, symbol_t::symbol_0>>,
         typelist<valuelist<char, 'a', 'b', 'd'>, std::integral_constant<symbol_t, symbol_t::symbol_1>>,
@@ -163,6 +171,6 @@ TEST_F(lextrie_fixture, get_symbol)
     EXPECT_EQ(*trie.get_symbol(), symbol_t::symbol_1);
 }
 
-} // namespace utils
+} // namespace lex
 } // namespace core
 } // namespace docgen

@@ -520,7 +520,6 @@ using transform_t = typename details::transform<List, Transformer>::type;
 // subset_idx
 //
 // Intended for typelist
-// TODO: may need for valuelist
 // Returns a valuelist<size_t, ...> of indices where
 // Condition<type>::value is true.
 //////////////////////////////////////////////////
@@ -565,7 +564,6 @@ using subset_idx_t = typename details::subset_idx<List, Condition>::type;
 // subset
 //
 // Intended for typelist
-// TODO: may need for valuelist
 // Returns a subset of original typelist with given valuelist<size_t,...>
 // list of indices.
 //////////////////////////////////////////////////

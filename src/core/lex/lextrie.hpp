@@ -1,12 +1,12 @@
 #pragma once
 #include <optional>
 #include <variant>
-#include <core/utils/trie_params.hpp>
+#include <core/lex/lextrie_params.hpp>
 #include <core/utils/map.hpp>
 
 namespace docgen {
 namespace core {
-namespace utils {
+namespace lex {
 
 ////////////////////////////////////////////////////////////
 // LexTrie 
@@ -18,8 +18,8 @@ namespace details {
 
 // Helper for LexTrie to determine the symbol type given trie_params type.
 template <class TrieParams>
-using get_symbol_type_t = typename get_t<
-    get_t<unzip_t<get_t<TrieParams, 1>>, 2>, 
+using get_symbol_type_t = typename utils::get_t<
+    utils::get_t<utils::unzip_t<utils::get_t<TrieParams, 1>>, 2>, 
     0
 >::value_type;
 
@@ -70,40 +70,44 @@ private:
     // Helper alias and functions
     ////////////////////////////////////////
     
-    using char_list_t = get_t<TrieParams, 0>;
-    static_assert(!is_empty_v<char_list_t>);
-    static_assert(is_valuelist_v<char_list_t>);
+    using char_list_t = utils::get_t<TrieParams, 0>;
+    static_assert(!utils::is_empty_v<char_list_t>);
+    static_assert(utils::is_valuelist_v<char_list_t>);
 
-    using subtrie_info_t = get_t<TrieParams, 1>;
-    static_assert(!is_empty_v<subtrie_info_t>);
-    static_assert(is_typelist_v<subtrie_info_t>);
+    using subtrie_info_t = utils::get_t<TrieParams, 1>;
+    static_assert(!utils::is_empty_v<subtrie_info_t>);
+    static_assert(utils::is_typelist_v<subtrie_info_t>);
 
     // assert first child information has 3 components
     // TODO: this should really check that every child information has 3 components
-    static_assert(size_v<get_t<subtrie_info_t, 0>> == 3);
+    static_assert(utils::size_v<utils::get_t<subtrie_info_t, 0>> == 3);
 
     // helper functions to create children mapping
     template <size_t I>
-    using subtrie_params_t = get_t<get_t<unzip_t<subtrie_info_t>, 0>, I>;
+    using subtrie_params_t = utils::get_t<utils::get_t<utils::unzip_t<subtrie_info_t>, 0>, I>;
     
     template <size_t... I>
     static constexpr auto make_children(std::index_sequence<I...>)
     {
         using variant_t = std::variant<LexTrie<subtrie_params_t<I>, SymbolType>...>;
-        using sorted_char_list_idx_t = sort_idx_t<char_list_t>;
+        using sorted_char_list_idx_t = utils::sort_idx_t<char_list_t>;
         // note that sorted_char_list_idx_t is used to construct the map
         // such that the keys are already in sorted order
         // This optimizes construction of the map at run-time and
         // allows us to remove the need to sort it during construction.
-        return make_map<char, variant_t, true>({
+        return utils::make_map<char, variant_t, true>({
             {
-                get_v<char_list_t, get_v<sorted_char_list_idx_t, I>>, 
+                utils::get_v<char_list_t, utils::get_v<sorted_char_list_idx_t, I>>, 
                 variant_t(
-                        std::in_place_index<get_v<sorted_char_list_idx_t, I>>, 
+                        std::in_place_index<utils::get_v<sorted_char_list_idx_t, I>>, 
                         // is accepting?
-                        get_t<get_t<unzip_t<subtrie_info_t>, 1>, get_v<sorted_char_list_idx_t, I>>::value,
+                        utils::get_t<
+                            utils::get_t<utils::unzip_t<subtrie_info_t>, 1>, utils::get_v<sorted_char_list_idx_t, I>
+                        >::value,
                         // possible symbol if accepting
-                        get_t<get_t<unzip_t<subtrie_info_t>, 2>, get_v<sorted_char_list_idx_t, I>>::value
+                        utils::get_t<
+                            utils::get_t<utils::unzip_t<subtrie_info_t>, 2>, utils::get_v<sorted_char_list_idx_t, I>
+                        >::value
                 )
             }...
         });
@@ -111,7 +115,7 @@ private:
 
     static constexpr auto make_children()
     {
-        return make_children(std::make_index_sequence<size_v<char_list_t>>());
+        return make_children(std::make_index_sequence<utils::size_v<char_list_t>>());
     }
 
     using children_map_t = std::decay_t<decltype(make_children())>;
@@ -133,7 +137,7 @@ private:
 
 // Specialization: leaf
 template <class SymbolType>
-class LexTrie<leaf_tag, SymbolType>
+class LexTrie<utils::leaf_tag, SymbolType>
 {
 public:
     using symbol_t = SymbolType;
@@ -276,41 +280,46 @@ LexTrie<TrieParams, SymbolType>::get_symbol() const
 template <class SymbolType>
 template <class OnTransition>
 inline bool 
-LexTrie<leaf_tag, SymbolType>::transition(char, OnTransition)
+LexTrie<utils::leaf_tag, SymbolType>::transition(char, OnTransition)
 {
     return false;
 }
 
 template <class SymbolType>
 inline size_t
-LexTrie<leaf_tag, SymbolType>::back_transition(size_t)
+LexTrie<utils::leaf_tag, SymbolType>::back_transition(size_t)
 {
     return 0;
 }
 
 template <class SymbolType>
-inline bool LexTrie<leaf_tag, SymbolType>::is_accept() const
+inline bool LexTrie<utils::leaf_tag, SymbolType>::is_accept() const
 {
     return is_accept_;
 }
 
 template <class SymbolType>
-inline bool LexTrie<leaf_tag, SymbolType>::is_reset() const
+inline bool LexTrie<utils::leaf_tag, SymbolType>::is_reset() const
 {
     return true;
 }
 
 template <class SymbolType>
-inline void LexTrie<leaf_tag, SymbolType>::reset()
+inline void LexTrie<utils::leaf_tag, SymbolType>::reset()
 {}
 
 template <class SymbolType>
-inline const std::optional<typename LexTrie<leaf_tag, SymbolType>::symbol_t>& 
-LexTrie<leaf_tag, SymbolType>::get_symbol() const
+inline const std::optional<typename LexTrie<utils::leaf_tag, SymbolType>::symbol_t>& 
+LexTrie<utils::leaf_tag, SymbolType>::get_symbol() const
 {
     return symbol_;
 }
 
-} // namespace utils
+////////////////////////////////////////////////////////////
+// LexTrie Typedef 
+////////////////////////////////////////////////////////////
+using lextrie_t = LexTrie<lextrie_params_t>;
+
+} // namespace lex
 } // namespace core
 } // namespace docgen
