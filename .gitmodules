@@ -1,0 +1,6 @@
+[submodule "libs/benchmark"]
+	path = libs/benchmark
+	url = https://github.com/google/benchmark.git
+[submodule "libs/eternal"]
+	path = libs/eternal
+	url = https://github.com/mapbox/eternal.git
